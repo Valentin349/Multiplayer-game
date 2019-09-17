@@ -22,6 +22,8 @@ sock.listen(5)
 key = {
     "x": 400,
     "y": 400,
+    "velx": 0,
+    "vely": 0,
 
     "player": 0,
     "lifes": 3,
@@ -31,6 +33,8 @@ key = {
 key_2 = {
     "x": 600,
     "y": 600,
+    "velx": 0,
+    "vely": 0,
 
 
     "player": 1,
