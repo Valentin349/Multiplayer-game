@@ -1,8 +1,6 @@
 import pygame as pg
-import socket
 
 from setting import *
-from Menu import Button
 from Player import Player
 from Objects import *
 
@@ -33,14 +31,12 @@ class Game:
         self.objs.add(self.platform)
         self.players.add(self.player1, self.player2)
 
-
     def update(self):
         for player in self.players:
             player.update()
             self.collision(player)
 
         self.objs.update()
-
 
     def draw(self):
         self.SURFACE.fill(BLACK)
@@ -51,18 +47,23 @@ class Game:
         for players in self.players:
             self.SURFACE.blit(players.image, players.rect)
 
-
     def collision(self, player):
         """
         :param player:  player object from sprite group
         :return: null
         """
-        collided = pg.sprite.spritecollide(player, self.objs, False)
 
-        if collided:
-            pass
-            #player.teleport()
+        playersCollided = self.player1.rect.colliderect(self.player2.rect)
 
+        posDiff = self.player2.pos - self.player1.pos
+        velDiff = self.player2.vel - self.player1.vel
+        impact = posDiff.dot(velDiff)
+
+        posUnitVec = posDiff / posDiff.magnitude_squared()
+        impulse = impact*posUnitVec
+
+        if playersCollided:
+            self.player2.vel += self.player2.vel - impulse
 
     def StartScreen(self):
 
@@ -80,7 +81,6 @@ class Game:
 
             getPressed = pg.key.get_pressed()
             if getPressed[pg.K_RETURN]:
-                print(IP)
                 return IP
 
             self.SCREEN.fill(BLACK)
@@ -98,22 +98,23 @@ class Game:
 def main():
     game = Game()
 
-    IP = game.StartScreen()
+    #IP = game.StartScreen()
+    IP = "192.168.0.36"
     PORT = 5555
+
+
 
     n = Network(IP, PORT)
 
     game.new()
 
-    # Networking
+    # sync server data to client
 
     startKey = n.getKey()
 
     game.player1.data = startKey
-    game.player1.dict_socket(startKey)
+    game.player1.dictSync(startKey)
 
-    p2key = n.send(game.player1.data)
-    game.player1.dict_socket(p2key)
 
     while game.running:
 
@@ -126,12 +127,10 @@ def main():
 
 
         # receive data from player 2
-
         p2key = n.send(game.player1.data)
 
-        game.player2.pos.x = p2key["x"]
-        game.player2.pos.y = p2key["y"]
-        game.player2.image.fill(p2key["colour"])
+        game.player2.data = p2key
+        game.player2.dictSync(p2key)
 
 
         game.update()
