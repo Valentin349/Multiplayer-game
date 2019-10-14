@@ -34,7 +34,7 @@ class Game:
     def update(self):
         for player in self.players:
             player.update()
-            self.collision(player)
+            #self.collision(player)
 
         self.objs.update()
 
