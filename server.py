@@ -6,7 +6,7 @@ import package
 
 class Server:
     # initial dict to save starting settings
-    key = {
+    key = {"1": {
         "x": 400,
         "y": 400,
 
@@ -19,25 +19,25 @@ class Server:
         "player": 0,
         "lifes": 3,
         "colour": BLUE
-    }
+    },
 
-    key_2 = {
-        "x": 600,
-        "y": 600,
+        "2": {
+            "x": 600,
+            "y": 600,
 
-        "velX": 0,
-        "velY": 0,
+            "velX": 0,
+            "velY": 0,
 
-        "accX": 0,
-        "accY": 0,
+            "accX": 0,
+            "accY": 0,
 
-        "player": 1,
-        "lifes": 3,
-        "colour": WHITE
+            "player": 1,
+            "lifes": 3,
+            "colour": WHITE
 
-    }
+        }}
 
-    keys_players = [key, key_2]
+    keys_players = [key["1"], key["2"]]
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.IP = socket.gethostbyname(socket.gethostname())
@@ -84,10 +84,7 @@ class Server:
                     print("Disconnected")
                     break
                 else:
-                    if player == 1:
-                        reply = self.keys_players[0]
-                    else:
-                        reply = self.keys_players[1]
+                    reply = self.keys_players
 
 
                     data_s = package.pack(reply)
@@ -101,30 +98,28 @@ class Server:
 
     def collision(self,player):
         collided = False
-        if (self.keys_players[player]["x"] < self.keys_players[1-player]["x"] + 25 and
-            self.keys_players[player]["x"] + 25 > self.keys_players[1-player]["x"] and
-            self.keys_players[player]["y"] < self.keys_players[1-player]["y"] + 25 and
-            self.keys_players[player]["y"] + 25 > self.keys_players[1-player]["x"]):
+        if (self.keys_players[player]["x"] < self.keys_players[1-player]["x"] + 50 and
+            self.keys_players[player]["x"] + 50 > self.keys_players[1-player]["x"] and
+            self.keys_players[player]["y"] < self.keys_players[1-player]["y"] + 50 and
+            self.keys_players[player]["y"] + 50 > self.keys_players[1-player]["x"]):
             collided = True
 
-        posDiff = [self.keys_players[1-player]["x"] - self.keys_players[player]["x"], self.keys_players[1-player]["y"] - self.keys_players[player]["y"]]
-        velDiff = [self.keys_players[1-player]["velX"] - self.keys_players[player]["velX"], self.keys_players[1-player]["velY"] - self.keys_players[player]["velY"]]
-        impact = posDiff[0]*velDiff[0] + posDiff[1]*velDiff[1]
-
-        posUnitX = posDiff[0] / (posDiff[0]**2 + posDiff[1]**2)
-        posUnitY = posDiff[1] / (posDiff[0] ** 2 + posDiff[1] ** 2)
-        impulseX = impact*posUnitX
-        impulseY = impact*posUnitY
-
         if collided:
+            posDiff = [self.keys_players[1 - player]["x"] - self.keys_players[player]["x"],
+                       self.keys_players[1 - player]["y"] - self.keys_players[player]["y"]]
+            velDiff = [self.keys_players[1 - player]["velX"] - self.keys_players[player]["velX"],
+                       self.keys_players[1 - player]["velY"] - self.keys_players[player]["velY"]]
+            impact = posDiff[0] * velDiff[0] + posDiff[1] * velDiff[1]
+
+            posUnitX = posDiff[0] / (posDiff[0] ** 2 + posDiff[1] ** 2)
+            posUnitY = posDiff[1] / (posDiff[0] ** 2 + posDiff[1] ** 2)
+            impulseX = impact * posUnitX
+            impulseY = impact * posUnitY
+
             print("collision")
             self.keys_players[1-player]["velX"] += self.keys_players[1-player]["velX"] - impulseX
             self.keys_players[1-player]["velY"] += self.keys_players[1-player]["velY"] - impulseY
 
-            #self.keys_players[1-player]["x"] += self.keys_players[1-player]["velX"] + 0.5 * \
-                                                #self.keys_players[1-player]["accX"]
-            #self.keys_players[1-player]["y"] += self.keys_players[1-player]["velY"] + 0.5 * \
-                                                #self.keys_players[1-player]["accY"]
 
 
 s = Server()
