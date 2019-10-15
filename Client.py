@@ -34,7 +34,6 @@ class Game:
     def update(self):
         for player in self.players:
             player.update()
-            #self.collision(player)
 
         self.objs.update()
 
@@ -129,8 +128,13 @@ def main():
         # receive data from player 2
         p2key = n.send(game.player1.data)
 
-        game.player2.data = p2key
-        game.player2.dictSync(p2key)
+
+        game.player2.data = p2key[1-startKey["player"]]
+        game.player2.dictSync(p2key[1-startKey["player"]])
+
+        game.player1.data = p2key[startKey["player"]]
+        game.player1.dictSync(p2key[startKey["player"]])
+
 
 
         game.update()
