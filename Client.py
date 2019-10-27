@@ -46,23 +46,7 @@ class Game:
         for players in self.players:
             self.SURFACE.blit(players.image, players.rect)
 
-    def collision(self, player):
-        """
-        :param player:  player object from sprite group
-        :return: null
-        """
 
-        playersCollided = self.player1.rect.colliderect(self.player2.rect)
-
-        posDiff = self.player2.pos - self.player1.pos
-        velDiff = self.player2.vel - self.player1.vel
-        impact = posDiff.dot(velDiff)
-
-        posUnitVec = posDiff / posDiff.magnitude_squared()
-        impulse = impact*posUnitVec
-
-        if playersCollided:
-            self.player2.vel += self.player2.vel - impulse
 
     def StartScreen(self):
 
@@ -117,6 +101,7 @@ def main():
 
     while game.running:
 
+        game.clock.tick(120)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 game.running = False
