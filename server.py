@@ -2,8 +2,9 @@ import socket
 import threading
 from setting import *
 import package
+import pygame as pg
 
-
+vec = pg.math.Vector2
 class Server:
     # initial dict to save starting settings
     key = {"1": {
@@ -38,11 +39,13 @@ class Server:
         }}
 
     keys_players = [key["1"], key["2"]]
+
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.IP = socket.gethostbyname(socket.gethostname())
         self.PORT = 5555
 
+        self.clock = pg.time.Clock()
 
         try:
             self.sock.bind((self.IP, self.PORT))
@@ -86,7 +89,7 @@ class Server:
                 else:
                     reply = self.keys_players
 
-
+                    self.clock.tick(124)
                     data_s = package.pack(reply)
                     conn.send(data_s)
             except socket.error as error:
@@ -98,28 +101,36 @@ class Server:
 
     def collision(self,player):
         collided = False
-        if (self.keys_players[player]["x"] < self.keys_players[1-player]["x"] + 50 and
-            self.keys_players[player]["x"] + 50 > self.keys_players[1-player]["x"] and
-            self.keys_players[player]["y"] < self.keys_players[1-player]["y"] + 50 and
-            self.keys_players[player]["y"] + 50 > self.keys_players[1-player]["x"]):
+        playerPos = vec(self.keys_players[player]["x"], self.keys_players[player]["y"])
+        playerVel = vec(self.keys_players[player]["velX"], self.keys_players[player]["velY"])
+        opponentPos = vec(self.keys_players[1-player]["x"], self.keys_players[1-player]["y"])
+        opponentVel = vec(self.keys_players[1-player]["velX"], self.keys_players[1-player]["velY"])
+
+        dx = self.keys_players[player]["x"] - self.keys_players[1 - player]["x"]
+        dy = self.keys_players[player]["y"] - self.keys_players[1 - player]["y"]
+        distance = (dx*dx + dy*dy)**0.5
+        if distance <= 50:
             collided = True
 
-        if collided:
-            posDiff = [self.keys_players[1 - player]["x"] - self.keys_players[player]["x"],
-                       self.keys_players[1 - player]["y"] - self.keys_players[player]["y"]]
-            velDiff = [self.keys_players[1 - player]["velX"] - self.keys_players[player]["velX"],
-                       self.keys_players[1 - player]["velY"] - self.keys_players[player]["velY"]]
-            impact = posDiff[0] * velDiff[0] + posDiff[1] * velDiff[1]
 
-            posUnitX = posDiff[0] / (posDiff[0] ** 2 + posDiff[1] ** 2)
-            posUnitY = posDiff[1] / (posDiff[0] ** 2 + posDiff[1] ** 2)
-            impulseX = impact * posUnitX
-            impulseY = impact * posUnitY
-
+        if collided and playerVel.magnitude() > opponentVel.magnitude():
             print("collision")
-            self.keys_players[1-player]["velX"] += self.keys_players[1-player]["velX"] - impulseX
-            self.keys_players[1-player]["velY"] += self.keys_players[1-player]["velY"] - impulseY
+            print(self.keys_players[1-player]["velX"],self.keys_players[1-player]["velY"])
 
+            posDiff = opponentPos - playerPos
+            velDiff = opponentVel - playerVel
+            impact = posDiff.dot(velDiff)
+
+            posUnitVec = posDiff / posDiff.magnitude_squared()
+            impulse = impact * posUnitVec
+
+            opponentVel += (opponentVel - impulse)*3.5
+            playerVel -= (playerVel - impulse)*0.34
+            self.keys_players[1 - player]["velX"] = opponentVel.x
+            self.keys_players[1 - player]["velY"] = opponentVel.y
+
+            self.keys_players[player]["velX"] = playerVel.x
+            self.keys_players[player]["velY"] = playerVel.y
 
 
 s = Server()
