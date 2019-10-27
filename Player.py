@@ -7,13 +7,17 @@ class Player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
 
         self.data = {
-            "x": 200,
-            "y": 200,
-            "velx": 0,
-            "vely": 0,
+            "x": 0,
+            "y": 0,
+
+            "velX": 0,
+            "velY": 0,
+
+            "accX": 0,
+            "accY": 0,
 
             "player": None,
-            "lifes": 0,
+            "lifes": 3,
             "colour": None
         }
         self.width = width
@@ -55,9 +59,10 @@ class Player(pg.sprite.Sprite):
 
         self.data["x"] = self.pos.x
         self.data["y"] = self.pos.y
-        self.data["velx"] = self.vel.x
-        self.data["vely"] = self.vel.y
-        print(self.data)
+
+        self.data["velX"] = self.vel.x
+        self.data["velY"] = self.vel.y
+        print(self.data["velX"], self.data["velY"])
 
     def dictSync(self, data):
         """
@@ -67,9 +72,8 @@ class Player(pg.sprite.Sprite):
         self.pos.x = data["x"]
         self.pos.y = data["y"]
 
+        self.vel.x = self.data["velX"]
+        self.vel.y = self.data["velY"]
+
         self.colour = data["colour"]
         self.image.fill(self.colour)
-
-    def teleport(self):
-        self.pos = vec(WIDTH / 2, HEIGHT / 2)
-        self.vel = vec(0,0)
