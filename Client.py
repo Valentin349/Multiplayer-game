@@ -1,4 +1,6 @@
 import pygame as pg
+from time import time
+from math import l
 
 from setting import *
 from Player import Player
@@ -31,9 +33,9 @@ class Game:
         self.objs.add(self.platform)
         self.players.add(self.player1, self.player2)
 
-    def update(self):
+    def update(self, dt):
         for player in self.players:
-            player.update()
+            player.update(dt)
 
         self.objs.update()
 
@@ -76,13 +78,25 @@ class Game:
     def EndScreen(self):
         pass
 
+    def interpolate(self, dt, timestamp):
+        past = 1000/dt
+        now = time()
+        renderTime = now - past
+
+        if renderTime <= timestamp:
+            total = timestamp - now
+            portion = renderTime - now
+
+            ratio = portion / total
+            
+
 
 
 def main():
     game = Game()
 
     #IP = game.StartScreen()
-    IP = "192.168.0.36"
+    IP = "10.192.41.214"
     PORT = 5555
 
 
@@ -101,7 +115,7 @@ def main():
 
     while game.running:
 
-        game.clock.tick(120)
+        dt = game.clock.tick(FPS)/1000
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 game.running = False
@@ -113,6 +127,7 @@ def main():
         # receive data from player 2
         p2key = n.send(game.player1.data)
 
+        timestamp = p2key["ts"]
 
         game.player2.data = p2key[1-startKey["player"]]
         game.player2.dictSync(p2key[1-startKey["player"]])
@@ -122,7 +137,7 @@ def main():
 
 
 
-        game.update()
+        game.update(dt)
         game.draw()
 
         game.SCREEN.blit(game.SURFACE,(0,0))
