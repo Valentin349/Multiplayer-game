@@ -1,8 +1,11 @@
 import socket
 import threading
+import pygame as pg
+from time import time
+
 from setting import *
 import package
-import pygame as pg
+
 
 vec = pg.math.Vector2
 class Server:
@@ -20,6 +23,7 @@ class Server:
         "player": 0,
         "lifes": 3,
         "colour": BLUE
+
     },
 
         "2": {
@@ -36,7 +40,9 @@ class Server:
             "lifes": 3,
             "colour": WHITE
 
-        }}
+    },
+        "ts": None
+    }
 
     keys_players = [key["1"], key["2"]]
 
@@ -89,7 +95,7 @@ class Server:
                 else:
                     reply = self.keys_players
 
-                    self.clock.tick(124)
+                    self.clock.tick(30)
                     data_s = package.pack(reply)
                     conn.send(data_s)
             except socket.error as error:
