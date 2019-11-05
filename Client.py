@@ -1,6 +1,5 @@
 import pygame as pg
 from time import time
-from math import l
 
 from setting import *
 from Player import Player
@@ -21,6 +20,8 @@ class Game:
         self.player1 = None
         self.player2 = None
 
+        self.p2key = None
+
     def new(self):
         # load objects and players
         self.players = pg.sprite.Group()
@@ -39,14 +40,15 @@ class Game:
 
         self.objs.update()
 
-    def draw(self):
+    def draw(self, t1, t2):
         self.SURFACE.fill(BLACK)
 
         for objects in self.objs:
             self.SURFACE.blit(objects.image, objects.rect)
 
         for players in self.players:
-            self.SURFACE.blit(players.image, players.rect)
+            pos = self.interpolate(t1, t2, players)
+            self.SURFACE.blit(players.image, pos)
 
 
 
@@ -78,17 +80,25 @@ class Game:
     def EndScreen(self):
         pass
 
-    def interpolate(self, dt, timestamp):
-        past = 1000/dt
+    def interpolate(self, t1, t2, player):
+        interpEnabled = True
+
+        past = 1000/FPS
         now = time()
         renderTime = now - past
+        t1 = t2
+        t2 = self.p2key[0]["ts"]
 
-        if renderTime <= timestamp:
-            total = timestamp - now
-            portion = renderTime - now
+        if interpEnabled == True and renderTime <= t2 and renderTime >= t1:
+            total = t2 - t1
+            portion = renderTime - t1
 
             ratio = portion / total
-            
+            interpXY = player.pos.lerp(player.lastPos, ratio)
+            print(player.pos, interpXY)
+            return interpXY
+        else:
+            return player.pos
 
 
 
@@ -96,7 +106,7 @@ def main():
     game = Game()
 
     #IP = game.StartScreen()
-    IP = "10.192.41.214"
+    IP = "192.168.0.36"
     PORT = 5555
 
 
@@ -112,10 +122,12 @@ def main():
     game.player1.data = startKey
     game.player1.dictSync(startKey)
 
+    t2 = 0
+    t1 = 0
 
     while game.running:
 
-        dt = game.clock.tick(FPS)/1000
+        dt = game.clock.tick(FPS) / 1000
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 game.running = False
@@ -125,20 +137,17 @@ def main():
 
 
         # receive data from player 2
-        p2key = n.send(game.player1.data)
+        game.p2key = n.send(game.player1.data)
 
-        timestamp = p2key["ts"]
+        game.player2.data = game.p2key[1 - startKey["player"]]
+        game.player2.dictSync(game.p2key[1 - startKey["player"]])
 
-        game.player2.data = p2key[1-startKey["player"]]
-        game.player2.dictSync(p2key[1-startKey["player"]])
-
-        game.player1.data = p2key[startKey["player"]]
-        game.player1.dictSync(p2key[startKey["player"]])
-
+        game.player1.data = game.p2key[startKey["player"]]
+        game.player1.dictSync(game.p2key[startKey["player"]])
 
 
         game.update(dt)
-        game.draw()
+        game.draw(t1, t2)
 
         game.SCREEN.blit(game.SURFACE,(0,0))
 
