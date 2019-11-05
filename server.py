@@ -2,7 +2,6 @@ import socket
 import threading
 import pygame as pg
 from time import time
-
 from setting import *
 import package
 
@@ -22,7 +21,9 @@ class Server:
 
         "player": 0,
         "lifes": 3,
-        "colour": BLUE
+        "colour": BLUE,
+
+        "ts": None
 
     },
 
@@ -38,10 +39,12 @@ class Server:
 
             "player": 1,
             "lifes": 3,
-            "colour": WHITE
+            "colour": WHITE,
 
-    },
-        "ts": None
+            "ts": None
+
+        }
+
     }
 
     keys_players = [key["1"], key["2"]]
@@ -87,6 +90,7 @@ class Server:
 
                 self.keys_players[player] = data_c
                 self.collision(player)
+                self.keys_players[player]["ts"] = time()
 
                 if not data_c:
                     # if no data is received assume disconnected
@@ -131,12 +135,15 @@ class Server:
             impulse = impact * posUnitVec
 
             opponentVel += (opponentVel - impulse)*3.5
-            playerVel -= (playerVel - impulse)*0.34
+            playerVel -= (playerVel - impulse)*0.5
             self.keys_players[1 - player]["velX"] = opponentVel.x
             self.keys_players[1 - player]["velY"] = opponentVel.y
 
             self.keys_players[player]["velX"] = playerVel.x
             self.keys_players[player]["velY"] = playerVel.y
+
+
+
 
 
 s = Server()
