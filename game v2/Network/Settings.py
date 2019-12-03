@@ -10,5 +10,5 @@ BLACK = (20, 20, 20)
 WHITE = (249, 249, 249)
 
 # player properties
-ACCELERATION = 0.00001
+ACCELERATION = 0.02
 FRICTION = -0.05

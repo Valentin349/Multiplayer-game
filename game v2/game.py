@@ -54,6 +54,7 @@ class Game:
 
     def dataSend(self, data):
         dataRecv = self.net.send(data)
+        print(dataRecv)
         return dataRecv
 
     def updateInputs(self):
