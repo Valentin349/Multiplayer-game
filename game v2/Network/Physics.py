@@ -1,14 +1,17 @@
 import pygame as pg
 import random
 from Settings import *
+from PowerUps import *
 vec = pg.math.Vector2
 
 class PhysicsEngine:
 
     def __init__(self):
-        self.pos = vec(random.randrange(0,350), random.randrange(0,350))
+        self.pos = vec(random.randrange(0, 300), random.randrange(0, 300))
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
+
+        self.dashTime = 0
 
     def MovementUpdate(self, data, dt):
         # resets acceleration
@@ -22,6 +25,8 @@ class PhysicsEngine:
             self.acc.x += ACCELERATION
         if data["l"]:
             self.acc.x -= ACCELERATION
+        if data["space"]:
+            self.dash()
         if self.acc.x != 0 and self.acc.y != 0:
             self.acc.x *= 0.7071
             self.acc.y *= 0.7071
@@ -31,6 +36,15 @@ class PhysicsEngine:
         # accelerates
         self.vel += self.acc
         self.pos += (self.vel + 0.5 * self.acc) * dt
+
+    def dash(self):
+        cooldown = 2
+        pressedTime = pg.time.get_ticks()/1000
+
+        if pressedTime > self.dashTime:
+            self.vel *= 3.5
+            self.dashTime = pressedTime + cooldown
+
 
     def collision(self, target):
         collided = False
