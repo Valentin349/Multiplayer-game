@@ -1,105 +1,69 @@
-import socket
-from Keys import *
-from Physics import *
 import pygame as pg
-from time import time
+import random
 from Settings import *
-import Package
+from PowerUps import *
+vec = pg.math.Vector2
 
-class Server:
+class PhysicsEngine:
 
     def __init__(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.IP = socket.gethostbyname(socket.gethostname())
-        self.PORT = 5555
+        self.pos = vec(random.randrange(0, 300), random.randrange(0, 300))
+        self.vel = vec(0, 0)
+        self.acc = vec(0, 0)
 
-        self.clock = pg.time.Clock()
+        self.dashTime = 0
 
-        self.P1physics = PhysicsEngine()
-        self.P2physics = PhysicsEngine()
+    def MovementUpdate(self, data, dt):
+        # resets acceleration
+        self.acc = vec(0, 0)
 
-        self.playerIdList = []
+        if data["u"]:
+            self.acc.y -= ACCELERATION
+        if data["d"]:
+            self.acc.y += ACCELERATION
+        if data["r"]:
+            self.acc.x += ACCELERATION
+        if data["l"]:
+            self.acc.x -= ACCELERATION
+        if data["space"]:
+            self.dash()
+        if self.acc.x != 0 and self.acc.y != 0:
+            self.acc.x *= 0.7071
+            self.acc.y *= 0.7071
 
-        self.powerUps = [blink()]
-        self.ability = None
-        self.abilityCreateTime = 0
+        # applies friction
+        self.acc += self.vel * FRICTION
+        # accelerates
+        self.vel += self.acc
+        self.pos += (self.vel + 0.5 * self.acc) * dt
 
-        try:
-            self.sock.bind((self.IP, self.PORT))
-        except socket.error as error:
-            print(str(error))
+    def dash(self):
+        cooldown = 2
+        pressedTime = pg.time.get_ticks()/1000
 
-        print("binding successfull")
-        self.handle()
+        if pressedTime > self.dashTime:
+            self.vel *= 3.5
+            self.dashTime = pressedTime + cooldown
 
-    def handle(self):
-        while 1:
-            self.clock.tick(124)
-            try:
-                try:
-                    dataRecieved, addr = self.sock.recvfrom(2048)
-                    if addr not in self.playerIdList:
-                        self.playerIdList.append(addr)
-                except:
-                    break
 
-                dataRecieved = Package.unpack(dataRecieved)
+    def collision(self, target):
+        collided = False
 
-                self.createPowerUp()
+        dx = self.pos.x - target.pos.x
+        dy = self.pos.y - target.pos.y
+        distance = (dx*dx + dy*dy)**0.5
+        if distance <= 50:
+            collided = True
 
-                if self.playerIdList[0] == addr:
-                    self.P1physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
-                    self.P1physics.collision(self.P2physics)
-                else:
-                    self.P2physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
-                    self.P2physics.collision(self.P1physics)
+        if collided and self.vel.magnitude() > target.vel.magnitude():
+            print("collision")
 
-                reply = self.reply()
+            posDiff = target.pos - self.pos
+            velDiff = target.vel - self.vel
+            impact = posDiff.dot(velDiff)
 
-                if not dataRecieved:
-                    # if no data is received assume disconnected
-                    print("Disconnected")
-                    break
-                else:
-                    # deal with response
-                    dataSend = Package.pack(reply)
-                    self.sock.sendto(dataSend, addr)
-            except socket.error as error:
-                print(error)
-                break
+            posUnitVec = posDiff / posDiff.magnitude_squared()
+            impulse = impact * posUnitVec
 
-    def createPowerUp(self):
-        cooldown = 10
-        createTime = pg.time.get_ticks() / 1000
-
-        if createTime > self.abilityCreateTime and self.ability is None:
-            self.ability = random.choice(self.powerUps)
-            self.abilityCreateTime = createTime + cooldown
-
-    def reply(self):
-        if self.ability is not None:
-            abilityX = self.ability.x
-            abilityY = self.ability.y
-        else:
-            abilityX = None
-            abilityY = None
-
-        reply = {"1": {"x": self.P1physics.pos.x,
-                       "y": self.P1physics.pos.y,
-                       },
-
-                 "2": {"x": self.P2physics.pos.x,
-                       "y": self.P2physics.pos.y,
-                       },
-
-                 "ability": {"x": abilityX,
-                             "y": abilityY
-                             },
-
-                 "time": time(),
-
-                 }
-
-        return reply
-
-s = Server()
+            target.vel += (target.vel - impulse)*3.5
+            self.vel -= (self.vel - impulse)*0.5
