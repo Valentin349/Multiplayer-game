@@ -15,12 +15,14 @@ class Server:
 
         self.clock = pg.time.Clock()
 
-
-
         self.P1physics = PhysicsEngine()
         self.P2physics = PhysicsEngine()
 
         self.playerIdList = []
+
+        self.powerUps = [blink()]
+        self.ability = None
+        self.abilityCreateTime = 0
 
         try:
             self.sock.bind((self.IP, self.PORT))
@@ -32,23 +34,24 @@ class Server:
 
     def handle(self):
         while 1:
-            dt = self.clock.tick(30)
+            self.clock.tick(124)
             try:
                 try:
                     dataRecieved, addr = self.sock.recvfrom(2048)
                     if addr not in self.playerIdList:
                         self.playerIdList.append(addr)
-                    print(self.playerIdList.index(addr)+1, dataRecieved)
                 except:
                     break
 
                 dataRecieved = Package.unpack(dataRecieved)
 
+                self.createPowerUp()
+
                 if self.playerIdList[0] == addr:
-                    self.P1physics.MovementUpdate(dataRecieved["inputs"], dt)
+                    self.P1physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
                     self.P1physics.collision(self.P2physics)
                 else:
-                    self.P2physics.MovementUpdate(dataRecieved["inputs"], dt)
+                    self.P2physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
                     self.P2physics.collision(self.P1physics)
 
                 reply = self.reply()
@@ -65,17 +68,36 @@ class Server:
                 print(error)
                 break
 
+    def createPowerUp(self):
+        cooldown = 10
+        createTime = pg.time.get_ticks() / 1000
+
+        if createTime > self.abilityCreateTime and self.ability is None:
+            self.ability = random.choice(self.powerUps)
+            self.abilityCreateTime = createTime + cooldown
+
     def reply(self):
+        if self.ability is not None:
+            abilityX = self.ability.x
+            abilityY = self.ability.y
+        else:
+            abilityX = None
+            abilityY = None
 
         reply = {"1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
-                       "time": time()
                        },
 
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
-                       "time": time()
-                       }
+                       },
+
+                 "ability": {"x": abilityX,
+                             "y": abilityY
+                             },
+
+                 "time": time(),
+
                  }
 
         return reply
