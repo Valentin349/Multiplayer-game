@@ -10,7 +10,6 @@ game.new()
 while game.running:
     game.clock.tick(60)
     game.updateInputs()
-    #print(game.player1.data["inputs"])
     data = game.dataSend(game.player1.data)
     game.updateGameState(data)
     game.draw()
