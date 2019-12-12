@@ -1,9 +1,10 @@
-import Random
+import random
+import pygame as pg
+vec = pg.math.Vector2
 
 class PowerUps:
     def __init__(self, x, y, abilityType):
-        self.x = x
-        self.y = y
+        self.pos = vec(x, y)
         self.abilityType = abilityType
 
     def cooldown(self):
@@ -11,7 +12,7 @@ class PowerUps:
 
 class Blink(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(0.350), random.randrange(0.350), "utility")
+        super().__init__(random.randrange(100, 500), random.randrange(100, 500), "utility")
 
-    def do(self, target):
+    def do(self, player, target):
         player.pos = target
