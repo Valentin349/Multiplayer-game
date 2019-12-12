@@ -1,7 +1,7 @@
 import pygame as pg
 import random
+import PowerUps
 from Settings import *
-from PowerUps import *
 vec = pg.math.Vector2
 
 class PhysicsEngine:
@@ -11,11 +11,17 @@ class PhysicsEngine:
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
 
-        self.dashTime = 0
+        self.nextDashTime = 0
+        self.ability = None
 
-    def MovementUpdate(self, data, dt):
+    def update(self, data, dt):
         # resets acceleration
         self.acc = vec(0, 0)
+
+        if data["mousePressed"] and self.ability is not None:
+            print(data["mouseX"], data["mouseY"])
+            self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
+            self.ability = None
 
         if data["u"]:
             self.acc.y -= ACCELERATION
@@ -38,12 +44,12 @@ class PhysicsEngine:
         self.pos += (self.vel + 0.5 * self.acc) * dt
 
     def dash(self):
-        cooldown = 2
-        pressedTime = pg.time.get_ticks()/1000
-
-        if pressedTime > self.dashTime:
+        coolDown = 2
+        timeUsed = pg.time.get_ticks() / 1000
+        if timeUsed > self.nextDashTime:
             self.vel *= 3.5
-            self.dashTime = pressedTime + cooldown
+            self.nextDashTime = timeUsed + coolDown
+            print("dash")
 
 
     def collision(self, target):
@@ -55,15 +61,23 @@ class PhysicsEngine:
         if distance <= 50:
             collided = True
 
-        if collided and self.vel.magnitude() > target.vel.magnitude():
-            print("collision")
+        if target is not None:
+            if self.__class__.__name__ == target.__class__.__name__:
+                if collided and self.vel.magnitude() > target.vel.magnitude():
+                    print("collision")
 
-            posDiff = target.pos - self.pos
-            velDiff = target.vel - self.vel
-            impact = posDiff.dot(velDiff)
+                    posDiff = target.pos - self.pos
+                    velDiff = target.vel - self.vel
+                    impact = posDiff.dot(velDiff)
 
-            posUnitVec = posDiff / posDiff.magnitude_squared()
-            impulse = impact * posUnitVec
+                    posUnitVec = posDiff / posDiff.magnitude_squared()
+                    impulse = impact * posUnitVec
 
-            target.vel += (target.vel - impulse)*3.5
-            self.vel -= (self.vel - impulse)*0.5
+                    target.vel += (target.vel - impulse)*3.5
+                    self.vel -= (self.vel - impulse)*0.5
+            else:
+                if collided:
+                    self.ability = target
+                    return True
+        else:
+            return False
