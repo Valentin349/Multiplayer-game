@@ -21,16 +21,19 @@ class Game:
 
         self.idCounter = 1
 
+        self.t2 = 0
+
     def new(self):
         # load objects and players
         self.players = pg.sprite.Group()
         self.objs = pg.sprite.Group()
 
         self.platform = Platform(0, 0, 800, 600)
+        self.abilityBlock = AbilityBlock(0, 0, 50, 50)
         self.player1 = Player(50, 50)
         self.player2 = Player(50, 50)
 
-        self.objs.add(self.platform)
+        self.objs.add(self.platform, self.abilityBlock)
         self.players.add(self.player1, self.player2)
 
         for player in self.players:
@@ -41,7 +44,10 @@ class Game:
         for player in self.players:
             player.update(dataRecv)
 
-        self.objs.update()
+        if self.abilityBlock not in self.objs and dataRecv["ability"] is not None:
+            self.objs.add(self.abilityBlock)
+
+        self.objs.update(dataRecv)
 
     def draw(self):
         self.SURFACE.fill(BLACK)
@@ -54,28 +60,40 @@ class Game:
 
     def dataSend(self, data):
         dataRecv = self.net.send(data)
-        print(dataRecv)
         return dataRecv
 
-    def updateInputs(self):
+    def updateInputs(self, dt):
         # resets inputs
         self.player1.data["inputs"]["l"] = 0
         self.player1.data["inputs"]["r"] = 0
         self.player1.data["inputs"]["u"] = 0
         self.player1.data["inputs"]["d"] = 0
+        self.player1.data["inputs"]["space"] = 0
+        self.player1.data["inputs"]["mousePressed"] = 0
 
         pressedKey = pg.key.get_pressed()
 
-        if pressedKey[pg.K_UP]:
-            self.player1.data["inputs"]["u"] = 1
-        if pressedKey[pg.K_DOWN]:
-            self.player1.data["inputs"]["d"] = 1
-        if pressedKey[pg.K_RIGHT]:
-            self.player1.data["inputs"]["r"] = 1
-        if pressedKey[pg.K_LEFT]:
-            self.player1.data["inputs"]["l"] = 1
+        if pg.mouse.get_pressed()[0]:
+            mousePos = pg.mouse.get_pos()
+            self.player1.data["inputs"]["mousePressed"] = 1
+            self.player1.data["inputs"]["mouseX"] = mousePos[0]
+            self.player1.data["inputs"]["mouseY"] = mousePos[1]
 
-    def interpolation(self):
+        if pressedKey[pg.K_w]:
+            self.player1.data["inputs"]["u"] = 1
+        if pressedKey[pg.K_a]:
+            self.player1.data["inputs"]["l"] = 1
+        if pressedKey[pg.K_d]:
+            self.player1.data["inputs"]["r"] = 1
+        if pressedKey[pg.K_s]:
+            self.player1.data["inputs"]["d"] = 1
+        if pressedKey[pg.K_SPACE]:
+            self.player1.data["inputs"]["space"] = 1
+
+
+        self.player1.data["dt"] = dt
+
+    def interpolation(self, data, player):
         pass
 
     def Endscreen(self):
