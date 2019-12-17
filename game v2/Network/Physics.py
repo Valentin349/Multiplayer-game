@@ -11,6 +11,9 @@ class PhysicsEngine:
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
 
+        self.sizeDouble = False
+        self.mass = 1
+
         self.nextDashTime = 0
         self.ability = None
 
@@ -73,8 +76,8 @@ class PhysicsEngine:
                     posUnitVec = posDiff / posDiff.magnitude_squared()
                     impulse = impact * posUnitVec
 
-                    target.vel += (target.vel - impulse)*3.5
-                    self.vel -= (self.vel - impulse)*0.5
+                    target.vel += (target.vel - impulse)*((2*self.mass)/target.mass + self.mass)
+                    self.vel -= (self.vel - impulse)*((2*target.mass)/target.mass + self.mass)*0.6
             else:
                 if collided:
                     self.ability = target
