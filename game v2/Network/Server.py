@@ -1,6 +1,8 @@
 import socket
+import random
 from Keys import *
 from Physics import *
+from PowerUps import *
 import pygame as pg
 from time import time
 from Settings import *
@@ -20,7 +22,7 @@ class Server:
 
         self.playerIdList = []
 
-        self.powerUps = [blink()]
+        self.powerUps = [Blink(), Growth()]
         self.ability = None
         self.abilityCreateTime = 0
 
@@ -48,11 +50,17 @@ class Server:
                 self.createPowerUp()
 
                 if self.playerIdList[0] == addr:
-                    self.P1physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
+                    self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"])
                     self.P1physics.collision(self.P2physics)
+                    if self.ability is not None:
+                        if self.P1physics.collision(self.ability):
+                            self.ability = None
                 else:
-                    self.P2physics.MovementUpdate(dataRecieved["inputs"], dataRecieved["dt"])
+                    self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"])
                     self.P2physics.collision(self.P1physics)
+                    if self.ability is not None:
+                        if self.P2physics.collision(self.ability):
+                            self.ability = None
 
                 reply = self.reply()
 
@@ -78,23 +86,24 @@ class Server:
 
     def reply(self):
         if self.ability is not None:
-            abilityX = self.ability.x
-            abilityY = self.ability.y
+            ability = {"x": self.ability.pos.x,
+                       "y": self.ability.pos.y,
+                       "Type": self.ability.abilityType
+                       }
         else:
-            abilityX = None
-            abilityY = None
+            ability = None
 
         reply = {"1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
+                       "sizeUp": self.P1physics.sizeDouble
                        },
 
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
+                       "sizeUp": self.P2physics.sizeDouble
                        },
 
-                 "ability": {"x": abilityX,
-                             "y": abilityY
-                             },
+                 "ability": ability,
 
                  "time": time(),
 
