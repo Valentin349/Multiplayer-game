@@ -33,8 +33,14 @@ class Player(pg.sprite.Sprite):
 
         self.pos = vec(0, 0)
 
+
     def update(self, dataRecv):
+        maxSize = 1
+        size = 0
         self.pos.x = dataRecv[str(self.data["player"])]["x"]
         self.pos.y = dataRecv[str(self.data["player"])]["y"]
 
+        if dataRecv[str(self.data["player"])]["sizeUp"] and size < maxSize:
+            self.image = pg.transform.scale2x(self.image)
+            size += 1
         self.rect.center = self.pos
