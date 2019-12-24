@@ -22,14 +22,14 @@ class AbilityBlock(pg.sprite.Sprite):
         self.rect.center = (x, y)
 
     def update(self, data):
-        if data["ability"] is None:
+        if data["abilityBox"] is None:
             self.kill()
         else:
-            self.rect.center = (data["ability"]["x"], data["ability"]["y"])
+            self.rect.center = (data["abilityBox"]["x"], data["abilityBox"]["y"])
 
-            if data["ability"]["Type"] == "utility":
+            if data["abilityBox"]["Type"] == "Utility":
                 self.image.fill(GREEN)
-            elif data["ability"]["Type"] == "defence":
+            elif data["abilityBox"]["Type"] == "Defence":
                 self.image.fill(BLUE)
             else:
                 self.image.fill(RED)
