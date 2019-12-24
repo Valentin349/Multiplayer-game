@@ -8,9 +8,10 @@ PORT = 5555
 game = Game(IP, PORT)
 game.new()
 while game.running:
-    game.clock.tick(60)
-    game.updateInputs()
+    dt = game.clock.tick(60)
+    game.updateInputs(round(dt))
     data = game.dataSend(game.player1.data)
+    print(data)
     game.updateGameState(data)
     game.draw()
     game.events()
