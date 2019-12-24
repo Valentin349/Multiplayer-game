@@ -1,6 +1,5 @@
 import pygame as pg
 import random
-import PowerUps
 from Settings import *
 vec = pg.math.Vector2
 
@@ -10,21 +9,29 @@ class PhysicsEngine:
         self.pos = vec(random.randrange(0, 300), random.randrange(0, 300))
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
+        self.maxVel = 1
 
-        self.sizeDouble = False
+        self.size = 50
         self.mass = 1
 
         self.nextDashTime = 0
         self.ability = None
+        self.abilityActive = False
 
     def update(self, data, dt):
         # resets acceleration
         self.acc = vec(0, 0)
 
         if data["mousePressed"] and self.ability is not None:
-            print(data["mouseX"], data["mouseY"])
-            self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
-            self.ability = None
+            if not self.abilityActive:
+                self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
+                self.abilityActive = True
+
+        if self.abilityActive:
+            if (pg.time.get_ticks() / 1000) > self.ability.timeUsed + self.ability.activeTime:
+                self.ability.destroy(self)
+                self.ability = None
+                self.abilityActive = False
 
         if data["u"]:
             self.acc.y -= ACCELERATION
@@ -44,6 +51,9 @@ class PhysicsEngine:
         self.acc += self.vel * FRICTION
         # accelerates
         self.vel += self.acc
+        if self.vel.magnitude() > self.maxVel:
+            self.vel = self.vel.normalize() * self.maxVel
+
         self.pos += (self.vel + 0.5 * self.acc) * dt
 
     def dash(self):
@@ -52,20 +62,22 @@ class PhysicsEngine:
         if timeUsed > self.nextDashTime:
             self.vel *= 3.5
             self.nextDashTime = timeUsed + coolDown
-            print("dash")
-
 
     def collision(self, target):
         collided = False
 
-        dx = self.pos.x - target.pos.x
-        dy = self.pos.y - target.pos.y
-        distance = (dx*dx + dy*dy)**0.5
-        if distance <= 50:
-            collided = True
+        diff = self.pos - target.pos
+        distance = diff.magnitude()
 
         if target is not None:
             if self.__class__.__name__ == target.__class__.__name__:
+
+                if self.size == target.size:
+                    if distance <= self.size:
+                        collided = True
+                elif distance <= 60:
+                    collided = True
+
                 if collided and self.vel.magnitude() > target.vel.magnitude():
                     print("collision")
 
@@ -78,8 +90,9 @@ class PhysicsEngine:
 
                     target.vel += (target.vel - impulse)*((2*self.mass)/target.mass + self.mass)
                     self.vel -= (self.vel - impulse)*((2*target.mass)/target.mass + self.mass)*0.6
+
             else:
-                if collided:
+                if distance <= 50:
                     self.ability = target
                     return True
         else:
