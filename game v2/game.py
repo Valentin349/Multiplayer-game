@@ -1,5 +1,4 @@
 import pygame as pg
-from time import time
 
 from Settings import *
 from Player import Player
@@ -44,7 +43,7 @@ class Game:
         for player in self.players:
             player.update(dataRecv)
 
-        if self.abilityBlock not in self.objs and dataRecv["ability"] is not None:
+        if self.abilityBlock not in self.objs and dataRecv["abilityBox"] is not None:
             self.objs.add(self.abilityBlock)
 
         self.objs.update(dataRecv)
