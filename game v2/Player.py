@@ -24,6 +24,7 @@ class Player(pg.sprite.Sprite):
 
         self.width = width
         self.height = height
+        self.size = 0
 
         self.colour = self.data["Colour"]
         self.image = pg.Surface((width, height))
@@ -35,12 +36,14 @@ class Player(pg.sprite.Sprite):
 
 
     def update(self, dataRecv):
-        maxSize = 1
-        size = 0
+
         self.pos.x = dataRecv[str(self.data["player"])]["x"]
         self.pos.y = dataRecv[str(self.data["player"])]["y"]
 
-        if dataRecv[str(self.data["player"])]["sizeUp"] and size < maxSize:
-            self.image = pg.transform.scale2x(self.image)
-            size += 1
+        size = dataRecv[str(self.data["player"])]["size"]
+        if self.size != size:
+            self.image = pg.transform.smoothscale(self.image, (size, size))
+            self.size = size
+
+
         self.rect.center = self.pos
