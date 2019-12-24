@@ -1,6 +1,5 @@
 import socket
 import random
-from Keys import *
 from Physics import *
 from PowerUps import *
 import pygame as pg
@@ -31,7 +30,7 @@ class Server:
         except socket.error as error:
             print(str(error))
 
-        print("binding successfull")
+        print("binding successful")
         self.handle()
 
     def handle(self):
@@ -86,24 +85,24 @@ class Server:
 
     def reply(self):
         if self.ability is not None:
-            ability = {"x": self.ability.pos.x,
-                       "y": self.ability.pos.y,
-                       "Type": self.ability.abilityType
-                       }
+            box = {"x": self.ability.pos.x,
+                   "y": self.ability.pos.y,
+                   "Type": self.ability.abilityType,
+                   }
         else:
-            ability = None
+            box = None
 
         reply = {"1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
-                       "sizeUp": self.P1physics.sizeDouble
+                       "size": self.P1physics.size
                        },
 
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
-                       "sizeUp": self.P2physics.sizeDouble
+                       "size": self.P2physics.size
                        },
 
-                 "ability": ability,
+                 "abilityBox": box,
 
                  "time": time(),
 
