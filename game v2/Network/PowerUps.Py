@@ -14,6 +14,7 @@ class PowerUps:
         self.timeUsed = 0
 
         self.objectPos = None
+        self.objectType = None
 
     def cooldown(self):
         timeUsed = pg.time.get_ticks() / 1000
@@ -59,15 +60,16 @@ class Growth(PowerUps):
 class Gun(PowerUps):
     def __init__(self):
         super().__init__(random.randrange(100, 500), random.randrange(100, 500), "Attack")
-        self.activeTime = 5
-        self.coolDownTime = 1.5
+        self.activeTime = 3
 
         self.direction = 0
+        self.objectType = "Bullet"
 
     def do(self, player, target):
-        self.direction = target - player.pos
-        self.objectPos = player.pos
+        self.direction = (target - player.pos).normalize()
+        self.objectPos = player.pos + (self.direction * 25)
+
+        self.timeUsed = pg.time.get_ticks() / 1000
 
     def update(self):
-        velocity = 10
-        self.objectPos += self.direction * velocity
+        self.objectPos += self.direction

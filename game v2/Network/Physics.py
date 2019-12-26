@@ -28,7 +28,10 @@ class PhysicsEngine:
                 self.abilityActive = True
 
         if self.abilityActive:
+            self.ability.update()
+            print(self.ability.objectPos)
             if (pg.time.get_ticks() / 1000) > self.ability.timeUsed + self.ability.activeTime:
+                print("x")
                 self.ability.destroy(self)
                 self.ability = None
                 self.abilityActive = False

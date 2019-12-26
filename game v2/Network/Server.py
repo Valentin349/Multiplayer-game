@@ -21,7 +21,7 @@ class Server:
 
         self.playerIdList = []
 
-        self.powerUps = [Blink(), Growth()]
+        self.powerUps = [Gun()]
         self.ability = None
         self.abilityCreateTime = 0
 
@@ -92,6 +92,28 @@ class Server:
         else:
             box = None
 
+        if self.P1physics.ability is not None:
+            if self.P1physics.ability.objectPos is not None:
+                abilityObjectP1 = {"x": self.P1physics.ability.objectPos.x,
+                                   "y": self.P1physics.ability.objectPos.y,
+                                   "Type": self.P1physics.ability.objectType
+                                   }
+            else:
+                abilityObjectP1 = None
+        else:
+            abilityObjectP1 = None
+
+        if self.P2physics.ability is not None:
+            if self.P2physics.ability.objectPos is not None:
+                abilityObjectP2 = {"x": self.P2physics.ability.objectPos.x,
+                                   "y": self.P2physics.ability.objectPos.y,
+                                   "Type": self.P2physics.ability.objectType
+                                   }
+            else:
+                abilityObjectP2 = None
+        else:
+            abilityObjectP2 = None
+
         reply = {"1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
                        "size": self.P1physics.size
@@ -103,6 +125,9 @@ class Server:
                        },
 
                  "abilityBox": box,
+
+                 "abilityObject1": abilityObjectP1,
+                 "abilityObject2": abilityObjectP2,
 
                  "time": time(),
 

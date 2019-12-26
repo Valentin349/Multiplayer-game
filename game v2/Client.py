@@ -11,7 +11,7 @@ while game.running:
     dt = game.clock.tick(60)
     game.updateInputs(round(dt))
     data = game.dataSend(game.player1.data)
-    print(data)
+    print(data["abilityObject1"],data["abilityObject2"])
     game.updateGameState(data)
     game.draw()
     game.events()
