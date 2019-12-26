@@ -51,7 +51,6 @@ class Game:
             self.SURFACE.blit(players.image, pos)
 
 
-
     def StartScreen(self):
 
         font = pg.font.Font(None, 30)
