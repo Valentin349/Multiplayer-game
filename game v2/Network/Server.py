@@ -21,7 +21,7 @@ class Server:
 
         self.playerIdList = []
 
-        self.powerUps = [Gun()]
+        self.powerUps = [Blink(), Growth(), Gun()]
         self.ability = None
         self.abilityCreateTime = 0
 

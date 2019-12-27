@@ -25,7 +25,8 @@ class AbilityBlock(pg.sprite.Sprite):
         if data["abilityBox"] is None:
             self.kill()
         else:
-            self.rect.center = (data["abilityBox"]["x"], data["abilityBox"]["y"])
+            self.rect.x = data["abilityBox"]["x"]
+            self.rect.y = data["abilityBox"]["y"]
 
             if data["abilityBox"]["Type"] == "Utility":
                 self.image.fill(GREEN)
@@ -33,3 +34,23 @@ class AbilityBlock(pg.sprite.Sprite):
                 self.image.fill(BLUE)
             else:
                 self.image.fill(RED)
+
+class AbilityObject(pg.sprite.Sprite):
+    def __init__(self, x, y, w, h):
+        pg.sprite.Sprite.__init__(self)
+        self.x = x
+        self.y = y
+        self.image = pg.Surface((w, h))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def update(self, data):
+        if data is None:
+            self.kill()
+        else:
+            self.rect.x = data["x"]
+            self.rect.y = data["y"]
+
+            if data["Type"] == "Bullet":
+                self.image = pg.transform.smoothscale(self.image, (20, 20))

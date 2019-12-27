@@ -20,8 +20,6 @@ class Game:
 
         self.idCounter = 1
 
-        self.t2 = 0
-
     def new(self):
         # load objects and players
         self.players = pg.sprite.Group()
@@ -29,6 +27,8 @@ class Game:
 
         self.platform = Platform(0, 0, 800, 600)
         self.abilityBlock = AbilityBlock(0, 0, 50, 50)
+        self.abilityObject1 = AbilityObject(0, 0, 20, 20)
+        self.abilityObject2 = AbilityObject(0, 0, 20, 20)
         self.player1 = Player(50, 50)
         self.player2 = Player(50, 50)
 
@@ -40,13 +40,25 @@ class Game:
             self.idCounter += 1
 
     def updateGameState(self, dataRecv):
-        for player in self.players:
-            player.update(dataRecv)
 
         if self.abilityBlock not in self.objs and dataRecv["abilityBox"] is not None:
             self.objs.add(self.abilityBlock)
 
-        self.objs.update(dataRecv)
+        if self.abilityObject1 not in self.objs and dataRecv["abilityObject1"] is not None:
+            self.objs.add(self.abilityObject1)
+        if self.abilityObject2 not in self.objs and dataRecv["abilityObject2"] is not None:
+            self.objs.add(self.abilityObject2)
+
+        for player in self.players:
+            player.update(dataRecv)
+
+        for obj in self.objs:
+            if obj not in [self.abilityObject1, self.abilityObject2]:
+                obj.update(dataRecv)
+            elif obj == self.abilityObject1:
+                obj.update(dataRecv["abilityObject1"])
+            elif obj == self.abilityObject2:
+                obj.update(dataRecv["abilityObject2"])
 
     def draw(self):
         self.SURFACE.fill(BLACK)

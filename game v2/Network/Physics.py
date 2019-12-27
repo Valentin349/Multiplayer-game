@@ -23,15 +23,14 @@ class PhysicsEngine:
         self.acc = vec(0, 0)
 
         if data["mousePressed"] and self.ability is not None:
-            if not self.abilityActive:
+            if (not self.abilityActive or self.ability.charges > 0) and self.ability.cooldown():
                 self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
                 self.abilityActive = True
 
         if self.abilityActive:
             self.ability.update()
-            print(self.ability.objectPos)
+            print(self.ability.charges)
             if (pg.time.get_ticks() / 1000) > self.ability.timeUsed + self.ability.activeTime:
-                print("x")
                 self.ability.destroy(self)
                 self.ability = None
                 self.abilityActive = False
@@ -75,6 +74,18 @@ class PhysicsEngine:
         if target is not None:
             if self.__class__.__name__ == target.__class__.__name__:
 
+                if self.ability is not None:
+                    if self.ability.objectPos is not None:
+                        targetRect = pg.Rect(target.pos.x, target.pos.y, target.size, target.size)
+                        if targetRect.colliderect(self.ability.objectRect):
+                            posDiff = target.pos - self.ability.objectPos
+                            velDiff = target.vel - (self.ability.objectDirection * self.ability.objectVel)
+                            impact = posDiff.dot(velDiff)
+
+                            posUnitVec = posDiff / posDiff.magnitude_squared()
+                            impulse = impact * posUnitVec
+                            target.vel += target.vel - impulse
+
                 if self.size == target.size:
                     if distance <= self.size:
                         collided = True
@@ -95,7 +106,7 @@ class PhysicsEngine:
                     self.vel -= (self.vel - impulse)*((2*target.mass)/target.mass + self.mass)*0.6
 
             else:
-                if distance <= 50:
+                if distance <= 50 and self.ability is None:
                     self.ability = target
                     return True
         else:
