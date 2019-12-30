@@ -26,13 +26,14 @@ class Game:
         self.objs = pg.sprite.Group()
 
         self.platform = Platform(0, 0, 800, 600)
+        self.map = TiledMap("Map1.tmx")
         self.abilityBlock = AbilityBlock(0, 0, 50, 50)
         self.abilityObject1 = AbilityObject(0, 0, 20, 20)
         self.abilityObject2 = AbilityObject(0, 0, 20, 20)
         self.player1 = Player(50, 50)
         self.player2 = Player(50, 50)
 
-        self.objs.add(self.platform, self.abilityBlock)
+        self.objs.add(self.abilityBlock)
         self.players.add(self.player1, self.player2)
 
         for player in self.players:
@@ -61,7 +62,7 @@ class Game:
                 obj.update(dataRecv["abilityObject2"])
 
     def draw(self):
-        self.SURFACE.fill(BLACK)
+        self.SURFACE.blit(self.map.image, self.map.rect)
 
         for objects in self.objs:
             self.SURFACE.blit(objects.image, objects.rect)

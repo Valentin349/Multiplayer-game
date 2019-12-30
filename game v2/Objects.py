@@ -1,4 +1,5 @@
 import pygame as pg
+import pytmx
 from Settings import *
 
 class Platform(pg.sprite.Sprite):
@@ -10,6 +11,33 @@ class Platform(pg.sprite.Sprite):
         self.image.fill(PURPLE)
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
+
+
+class TiledMap:
+    def __init__(self, filename):
+        tm = pytmx.load_pygame(filename, pixelalpha=True)
+        self.width = tm.width * tm.tilewidth
+        self.height = tm.height * tm.tileheight
+        self.tmxData = tm
+        self.image = self.makeMap()
+        self.rect = self.image.get_rect()
+
+        self.image = pg.transform.scale(self.image, (WIDTH, HEIGHT))
+
+    def render(self, surface):
+        ti = self.tmxData.get_tile_image_by_gid
+        for layer in self.tmxData.visible_layers:
+            if isinstance(layer, pytmx.TiledTileLayer):
+                for x, y, gid, in layer:
+                    tile = ti(gid)
+                    if tile:
+                        surface.blit(tile, (x * self.tmxData.tilewidth,
+                                            y * self.tmxData.tileheight))
+
+    def makeMap(self):
+        tempSurface = pg.Surface((self.width, self.height))
+        self.render(tempSurface)
+        return tempSurface
 
 
 class AbilityBlock(pg.sprite.Sprite):

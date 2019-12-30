@@ -2,7 +2,7 @@ from game import Game
 import pygame as pg
 
 
-IP = "192.168.0.36"
+IP = "192.168.0.11"
 PORT = 5555
 
 game = Game(IP, PORT)

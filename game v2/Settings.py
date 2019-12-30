@@ -1,6 +1,6 @@
 # game options
-WIDTH = 1000
-HEIGHT = 800
+WIDTH = 1280
+HEIGHT = 720
 FPS = 120
 
 # colours
