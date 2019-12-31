@@ -1,9 +1,9 @@
 import socket
 import random
+import pygame as pg
+
 from Physics import *
 from PowerUps import *
-import pygame as pg
-from time import time
 from Settings import *
 import Package
 
@@ -16,12 +16,13 @@ class Server:
 
         self.clock = pg.time.Clock()
 
-        self.P1physics = PhysicsEngine()
-        self.P2physics = PhysicsEngine()
+        self.P1physics = PhysicsEngine(615, 200)
+        self.P2physics = PhysicsEngine(615, 520)
 
         self.playerIdList = []
 
-        self.powerUps = [Blink(), Growth(), Gun()]
+        self.obstacles = []
+        self.powerUps = [Gun()]
         self.ability = None
         self.abilityCreateTime = 0
 
@@ -46,19 +47,28 @@ class Server:
 
                 dataRecieved = Package.unpack(dataRecieved)
 
+                if "objects" in dataRecieved:
+                    if len(self.obstacles) == 0:
+                        for obstacle in dataRecieved["objects"]:
+                            wall = pg.Rect(obstacle[0], obstacle[1], obstacle[2], obstacle[3])
+                            self.obstacles.append(wall)
+                    dataSend = Package.pack("")
+                    self.sock.sendto(dataSend, addr)
+                    continue
+
                 self.createPowerUp()
 
                 if self.playerIdList[0] == addr:
                     self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"])
-                    self.P1physics.collision(self.P2physics)
+                    self.P1physics.collision(self.P2physics, self.obstacles)
                     if self.ability is not None:
-                        if self.P1physics.collision(self.ability):
+                        if self.P1physics.collision(self.ability, self.obstacles):
                             self.ability = None
                 else:
                     self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"])
-                    self.P2physics.collision(self.P1physics)
+                    self.P2physics.collision(self.P1physics, self.obstacles)
                     if self.ability is not None:
-                        if self.P2physics.collision(self.ability):
+                        if self.P2physics.collision(self.ability, self.obstacles):
                             self.ability = None
 
                 reply = self.reply()
@@ -128,8 +138,6 @@ class Server:
 
                  "abilityObject1": abilityObjectP1,
                  "abilityObject2": abilityObjectP2,
-
-                 "time": time(),
 
                  }
 

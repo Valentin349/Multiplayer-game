@@ -24,8 +24,8 @@ class Game:
         # load objects and players
         self.players = pg.sprite.Group()
         self.objs = pg.sprite.Group()
+        self.obstacles = pg.sprite.Group()
 
-        self.platform = Platform(0, 0, 800, 600)
         self.map = TiledMap("Map1.tmx")
         self.abilityBlock = AbilityBlock(0, 0, 50, 50)
         self.abilityObject1 = AbilityObject(0, 0, 20, 20)
@@ -39,6 +39,11 @@ class Game:
         for player in self.players:
             player.data["player"] = self.idCounter
             self.idCounter += 1
+
+        for tileObject in self.map.tmxData.objects:
+            if tileObject.name == "wall":
+                self.obstacles.add(Wall(tileObject.x*3.64, tileObject.y*3, tileObject.width*3.64, tileObject.height*3))
+
 
     def updateGameState(self, dataRecv):
 
@@ -73,6 +78,12 @@ class Game:
     def dataSend(self, data):
         dataRecv = self.net.send(data)
         return dataRecv
+
+    def sendStartingData(self):
+        data = {"objects": []}
+        for obsticle in self.obstacles:
+            data["objects"].append([obsticle.rect.x, obsticle.rect.y, obsticle.rect.width, obsticle.rect.height])
+        self.net.send(data)
 
     def updateInputs(self, dt):
         # resets inputs

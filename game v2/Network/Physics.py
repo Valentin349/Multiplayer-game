@@ -5,8 +5,8 @@ vec = pg.math.Vector2
 
 class PhysicsEngine:
 
-    def __init__(self):
-        self.pos = vec(random.randrange(0, 300), random.randrange(0, 300))
+    def __init__(self, spawnX, spawnY):
+        self.pos = vec(spawnX, spawnY)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.maxVel = 1
@@ -25,11 +25,11 @@ class PhysicsEngine:
         if data["mousePressed"] and self.ability is not None:
             if (not self.abilityActive or self.ability.charges > 0) and self.ability.cooldown():
                 self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
+                print(data["mouseX"], data["mouseY"])
                 self.abilityActive = True
 
         if self.abilityActive:
             self.ability.update()
-            print(self.ability.charges)
             if (pg.time.get_ticks() / 1000) > self.ability.timeUsed + self.ability.activeTime:
                 self.ability.destroy(self)
                 self.ability = None
@@ -65,14 +65,19 @@ class PhysicsEngine:
             self.vel *= 3.5
             self.nextDashTime = timeUsed + coolDown
 
-    def collision(self, target):
+    def collision(self, target, objects):
         collided = False
 
         diff = self.pos - target.pos
         distance = diff.magnitude()
 
+        playerRect = pg.Rect(self.pos.x, self.pos.y, self.size, self.size)
         if target is not None:
             if self.__class__.__name__ == target.__class__.__name__:
+
+                for obstacle in objects:
+                    if playerRect.colliderect(obstacle):
+                        self.vel *= -1.5
 
                 if self.ability is not None:
                     if self.ability.objectPos is not None:

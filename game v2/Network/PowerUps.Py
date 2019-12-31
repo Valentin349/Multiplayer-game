@@ -37,21 +37,22 @@ class PowerUps:
 
 class Blink(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(100, 500), random.randrange(100, 500), "Utility")
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Utility")
 
     def do(self, player, target):
-        self.pos = vec(random.randrange(100, 500), random.randrange(100, 500))
+        self.pos = vec(random.randrange(180, 1090), random.randrange(150, 570))
 
-        player.pos = target
+        if target.x in range(180, 1090) and target.y in range(150, 600):
+            player.pos = target
 
 
 class Growth(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(100, 500), random.randrange(100, 500), "Defence")
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Defence")
         self.activeTime = 6
 
     def do(self, player, target):
-        self.pos = vec(random.randrange(100, 500), random.randrange(100, 500))
+        self.pos = vec(random.randrange(180, 1090), random.randrange(150, 570))
 
         player.mass = 3
         player.size = 70
@@ -67,8 +68,8 @@ class Growth(PowerUps):
 
 class Gun(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(100, 500), random.randrange(100, 500), "Attack")
-        self.activeTime = 4
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Attack")
+        self.activeTime = 10
         self.charges = 3
         self.coolDownTime = 0.5
 
@@ -76,7 +77,7 @@ class Gun(PowerUps):
         self.objectVel = 17
 
     def do(self, player, target):
-        self.pos = vec(random.randrange(100, 500), random.randrange(100, 500))
+        self.pos = vec(random.randrange(180, 1090), random.randrange(150, 570))
 
         self.charges -= 1
 

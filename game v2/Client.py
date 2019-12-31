@@ -7,6 +7,7 @@ PORT = 5555
 
 game = Game(IP, PORT)
 game.new()
+game.sendStartingData()
 while game.running:
     dt = game.clock.tick(60)
     game.updateInputs(round(dt))
