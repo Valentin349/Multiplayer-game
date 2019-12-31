@@ -22,7 +22,7 @@ class Server:
         self.playerIdList = []
 
         self.obstacles = []
-        self.powerUps = [Gun()]
+        self.powerUps = [Blink(), Growth(), Gun()]
         self.ability = None
         self.abilityCreateTime = 0
 
