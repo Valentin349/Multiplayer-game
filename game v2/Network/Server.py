@@ -124,20 +124,31 @@ class Server:
         else:
             abilityObjectP2 = None
 
+        if self.P1physics.lives <= 0 or self.P2physics.lives <= 0:
+            gameEnd = True
+        else:
+            gameEnd = False
+
         reply = {"1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
-                       "size": self.P1physics.size
+                       "size": self.P1physics.size,
+                       "lives": self.P1physics.lives,
+                       "hp": self.P1physics.hp
                        },
 
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
-                       "size": self.P2physics.size
+                       "size": self.P2physics.size,
+                       "lives": self.P2physics.lives,
+                       "hp": self.P2physics.hp
                        },
 
                  "abilityBox": box,
 
                  "abilityObject1": abilityObjectP1,
                  "abilityObject2": abilityObjectP2,
+
+                 "gameEnd": gameEnd
 
                  }
 

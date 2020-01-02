@@ -12,6 +12,8 @@ while game.running:
     dt = game.clock.tick(60)
     game.updateInputs(round(dt))
     data = game.dataSend(game.player1.data)
+    if data["gameEnd"]:
+        game.running = False
     game.updateGameState(data)
     game.draw()
     game.events()

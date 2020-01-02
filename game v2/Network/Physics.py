@@ -14,6 +14,9 @@ class PhysicsEngine:
         self.size = 50
         self.mass = 1
 
+        self.lives = 3
+        self.hp = 100
+
         self.nextDashTime = 0
         self.ability = None
         self.abilityActive = False
@@ -34,6 +37,11 @@ class PhysicsEngine:
                 self.ability.destroy(self)
                 self.ability = None
                 self.abilityActive = False
+
+        if self.hp <= 0:
+            self.hp = 100
+            self.lives -= 1
+        print(self.hp, self.lives)
 
         if data["u"]:
             self.acc.y -= ACCELERATION
@@ -77,7 +85,9 @@ class PhysicsEngine:
 
                 for obstacle in objects:
                     if playerRect.colliderect(obstacle):
-                        self.vel *= -1.5
+                        if self.vel.magnitude() > 0.6:
+                            target.hp -= (self.vel.magnitude() - 0.6) * 100
+                        self.vel *= -1.2
 
                 if self.ability is not None:
                     if self.ability.objectPos is not None:

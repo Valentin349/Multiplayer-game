@@ -1,4 +1,5 @@
 import pygame as pg
+from Objects import *
 vec = pg.math.Vector2
 
 
@@ -8,7 +9,6 @@ class Player(pg.sprite.Sprite):
 
         self.data = {
             "player": 0,
-            "Colour": 0,
             "dt": 0,
             "inputs": {"l": 0,
                        "r": 0,
@@ -26,8 +26,11 @@ class Player(pg.sprite.Sprite):
         self.height = height
         self.size = 0
 
-        self.colour = self.data["Colour"]
-        self.image = pg.Surface((width, height))
+        self.hp = 0
+        self.lives = 0
+
+        sprites = SpriteSheet("inca_back2.png")
+        self.image = sprites.loadSprite((0,0,32,32))
 
         self.rect = self.image.get_rect()
         self.rect.center = (0, 0)
@@ -37,12 +40,15 @@ class Player(pg.sprite.Sprite):
 
     def update(self, dataRecv):
 
+        self.lives = dataRecv[str(self.data["player"])]["lives"]
+        self.hp = dataRecv[str(self.data["player"])]["hp"]
+
         self.pos.x = dataRecv[str(self.data["player"])]["x"]
         self.pos.y = dataRecv[str(self.data["player"])]["y"]
 
         size = dataRecv[str(self.data["player"])]["size"]
         if self.size != size:
-            self.image = pg.transform.smoothscale(self.image, (size, size))
+            self.image = pg.transform.scale(self.image, (size, size))
             self.size = size
 
 

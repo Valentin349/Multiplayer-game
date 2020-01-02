@@ -32,8 +32,11 @@ class Game:
         self.abilityObject2 = AbilityObject(0, 0, 20, 20)
         self.player1 = Player(50, 50)
         self.player2 = Player(50, 50)
+        self.HpBar1 = HealthBar(1150,10,120,40)
+        self.HpBar2 = HealthBar(1150, 50, 120, 40)
 
-        self.objs.add(self.abilityBlock)
+
+        self.objs.add(self.abilityBlock, self.HpBar1, self.HpBar2)
         self.players.add(self.player1, self.player2)
 
         for player in self.players:
@@ -59,12 +62,19 @@ class Game:
             player.update(dataRecv)
 
         for obj in self.objs:
-            if obj not in [self.abilityObject1, self.abilityObject2]:
+            if obj not in [self.abilityObject1, self.abilityObject2, self.HpBar1, self.HpBar2]:
                 obj.update(dataRecv)
             elif obj == self.abilityObject1:
                 obj.update(dataRecv["abilityObject1"])
             elif obj == self.abilityObject2:
                 obj.update(dataRecv["abilityObject2"])
+            elif obj == self.HpBar1:
+                obj.update(dataRecv["1"])
+            elif obj == self.HpBar2:
+                obj.update(dataRecv["2"])
+
+
+
 
     def draw(self):
         self.SURFACE.blit(self.map.image, self.map.rect)
