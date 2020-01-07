@@ -5,7 +5,7 @@ import pygame as pg
 IP = "192.168.0.11"
 PORT = 5555
 
-game = Game(IP, PORT)
+game = Game(PORT)
 game.new()
 game.sendStartingData()
 while game.running:

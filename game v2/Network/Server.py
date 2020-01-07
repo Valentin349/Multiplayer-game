@@ -2,17 +2,25 @@ import socket
 import random
 import pygame as pg
 
+from threading import Thread
 from Physics import *
 from PowerUps import *
 from Settings import *
 import Package
 
-class Server:
-
+class Server(Thread):
     def __init__(self):
+        Thread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.IP = socket.gethostbyname(socket.gethostname())
         self.PORT = 5555
+
+        try:
+            self.sock.bind((self.IP, self.PORT))
+        except socket.error as error:
+            print(str(error))
+
+        print("binding successful")
 
         self.clock = pg.time.Clock()
 
@@ -26,12 +34,7 @@ class Server:
         self.ability = None
         self.abilityCreateTime = 0
 
-        try:
-            self.sock.bind((self.IP, self.PORT))
-        except socket.error as error:
-            print(str(error))
 
-        print("binding successful")
         self.handle()
 
     def handle(self):
@@ -154,4 +157,29 @@ class Server:
 
         return reply
 
-s = Server()
+class TcpServer(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.IP = socket.gethostbyname(socket.gethostname())
+        self.PORT = 5544
+
+        try:
+            self.sock.bind((self.IP, self.PORT))
+        except socket.error as error:
+            print(str(error))
+
+        self.sock.listen()
+        print("Tcp Socket is listening")
+
+    def handle(self):
+        while 1:
+            conn, address = self.sock.accept()
+            print(address, "has connected")
+            data = conn.recv(2048)
+            conn.send(data)
+
+
+tcpServer = TcpServer()
+mainServer = Server()
+

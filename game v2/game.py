@@ -7,7 +7,7 @@ from Objects import *
 from Network import Network
 
 class Game:
-    def __init__(self, IP, PORT):
+    def __init__(self, PORT):
         pg.init()
         self.SCREEN = pg.display.set_mode((WIDTH, HEIGHT))
         self.SURFACE = pg.Surface((WIDTH, HEIGHT))
@@ -16,7 +16,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
 
-        self.net = Network(IP, PORT)
+        self.net = Network(PORT)
 
         self.idCounter = 1
 
