@@ -19,6 +19,41 @@ class SpriteSheet:
     def loadMultipleSprites(self, rects, colorkey=None):
         return [self.loadSprite(rect, colorkey) for rect in rects]
 
+    def load_grid_images(self, num_rows, num_cols, x_margin=0, x_padding=0,
+                         y_margin=0, y_padding=0):
+        """Load a grid of images.
+        x_margin is space between top of sheet and top of first row.
+        x_padding is space between rows.
+        Assumes symmetrical padding on left and right.
+        Same reasoning for y.
+        Calls self.images_at() to get list of images.
+        """
+        sheet_rect = self.sheet.get_rect()
+        sheet_width, sheet_height = sheet_rect.size
+
+        # To calculate the size of each sprite, subtract the two margins,
+        #   and the padding between each row, then divide by num_cols.
+        # Same reasoning for y.
+        x_sprite_size = (sheet_width - 2 * x_margin
+                         - (num_cols - 1) * x_padding) / num_cols
+        y_sprite_size = (sheet_height - 2 * y_margin
+                         - (num_rows - 1) * y_padding) / num_rows
+
+        sprite_rects = []
+        for row_num in range(num_rows):
+            for col_num in range(num_cols):
+                # Position of sprite rect is margin + one sprite size
+                #   and one padding size for each row. Same for y.
+                x = x_margin + col_num * (x_sprite_size + x_padding)
+                y = y_margin + row_num * (y_sprite_size + y_padding)
+                sprite_rect = (x, y, x_sprite_size, y_sprite_size)
+                sprite_rects.append(sprite_rect)
+
+        grid_images = self.loadMultipleSprites(sprite_rects)
+        print(f"Loaded {len(grid_images)} grid images.")
+
+        return grid_images
+
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, x, y, w, h):
@@ -29,6 +64,7 @@ class Wall(pg.sprite.Sprite):
         self.image = pg.Surface((w, h))
         self.rect.x = x
         self.rect.y = y
+
 
 class TiledMap:
     def __init__(self, filename):
@@ -82,6 +118,7 @@ class AbilityBlock(pg.sprite.Sprite):
             else:
                 self.image = pg.transform.scale(self.sprites[2], (50, 50))
 
+
 class AbilityObject(pg.sprite.Sprite):
     def __init__(self, x, y, w, h):
         pg.sprite.Sprite.__init__(self)
@@ -102,6 +139,7 @@ class AbilityObject(pg.sprite.Sprite):
             if data["Type"] == "Bullet":
                 self.image = pg.transform.scale(self.image, (20, 20))
 
+
 class HealthBar(pg.sprite.Sprite):
     def __init__(self, x, y, w, h):
         pg.sprite.Sprite.__init__(self)
@@ -120,7 +158,6 @@ class HealthBar(pg.sprite.Sprite):
             self.hearts.append(pg.transform.scale(sprite, (120, 40)))
 
     def update(self, data):
-        print(data["lives"], data["hp"])
         if data["lives"] == 3 and data["hp"] > 50:
             self.image = self.hearts[0]
         elif data["lives"] == 3 and data["hp"] <= 50:
@@ -133,4 +170,78 @@ class HealthBar(pg.sprite.Sprite):
             self.image = self.hearts[4]
         elif data["lives"] == 1 and data["hp"] <= 50:
             self.image = self.hearts[5]
+
+
+class AbilityHud(pg.sprite.Sprite):
+    def __init__(self, x, y, w, h):
+        pg.sprite.Sprite.__init__(self)
+
+        sprites = SpriteSheet("tortell-andy-spell-icons.jpg")
+        self.sprites = sprites.load_grid_images(8, 14, 56, 16, 56, 16)
+
+        self.cd1Start = False
+        self.cd2Start = False
+        self.cd1TimeStart = 0
+        self.cd2TimeStart = 0
+
+        self.x = x
+        self.y = y
+        self.image = pg.Surface((w, h))
+        self.image.fill((0, 177, 64))
+        self.image.set_colorkey((0, 177, 64))
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.abilityName = None
+
+    def update(self, data):
+        abilityData = {"Blink": [47, 0], "Gun": [59, 10], "Growth": [43,6]} # sprite num, active time
+        self.abilityName = data[str(data["id"])]["ability"]
+
+        self.image.fill((0, 177, 64))
+
+        if self.abilityName is not None:
+            self.image.blit(pg.transform.scale(self.sprites[abilityData[self.abilityName][0]], (50, 50)), (0, 0))
+            if self.cd2Start:
+                self.cooldownBar(pg.transform.scale(self.sprites[abilityData[self.abilityName][0]], (50, 50))
+                                                    ,abilityData[self.abilityName][1]+self.cd2TimeStart
+                                                    , self.cd2TimeStart
+                                                    ,2)
+        else:
+            self.cd2TimeStart = 0
+            self.cd2Start = False
+
+        self.image.blit(pg.transform.scale(self.sprites[36], (50, 50)), (60, 0))
+        if self.cd1Start:
+            self.cooldownBar(pg.transform.scale(self.sprites[36], (50, 50))
+                             , 2 + self.cd1TimeStart, self.cd1TimeStart, 1)
+
+    def cooldownBar(self, surface, cdTime, start, id):
+        if pg.time.get_ticks() / 1000 < cdTime:
+            timeDiff = int(((cdTime - pg.time.get_ticks() / 1000) / (cdTime - start)) *50)
+            cdBar = pg.transform.scale(surface.copy(), (50,timeDiff))
+            cdBar.fill(BLACK)
+            cdBar.set_alpha(150)
+
+            pos = (0,0)
+            if id == 1:
+                pos = (60, 0)
+            self.image.blit(cdBar, pos)
+        else:
+            if id == 1:
+                self.cd1Start = False
+            elif id == 2:
+                self.cd2Start = False
+
+    def cooldownStart(self, ability, time):
+        if ability == "side" and not self.cd1Start:
+            self.cd1Start = True
+            self.cd1TimeStart = time
+        elif ability == "pickup" and not self.cd2Start and self.abilityName is not None:
+            self.cd2Start = True
+            self.cd2TimeStart = time
+
+
 

@@ -25,7 +25,7 @@ class Network:
             addr = socket.gethostbyname(socket.gethostname())[:-2] + str(ending)
             print(addr)
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.settimeout(0.5)
+            conn.settimeout(0.1)
             result = conn.connect_ex((addr, port))
             conn.close()
 

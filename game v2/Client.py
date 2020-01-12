@@ -12,6 +12,7 @@ while game.running:
     dt = game.clock.tick(60)
     game.updateInputs(round(dt))
     data = game.dataSend(game.player1.data)
+    game.id = data["id"]
     if data["gameEnd"]:
         game.running = False
     game.updateGameState(data)

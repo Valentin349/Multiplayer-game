@@ -108,7 +108,6 @@ class PhysicsEngine:
                     collided = True
 
                 if collided and self.vel.magnitude() > target.vel.magnitude():
-                    print("collision")
 
                     posDiff = target.pos - self.pos
                     velDiff = target.vel - self.vel

@@ -24,16 +24,17 @@ class Player(pg.sprite.Sprite):
 
         self.width = width
         self.height = height
-        self.size = 0
 
         self.hp = 0
         self.lives = 0
 
         sprites = SpriteSheet("inca_back2.png")
-        self.image = sprites.loadSprite((0,0,32,32))
+        self.normalImage = pg.transform.scale(sprites.loadSprite((0,0,32,32)), (50,50))
+        self.largeImage = pg.transform.scale(sprites.loadSprite((0,0,32,32)), (70, 70))
+        self.image = self.normalImage
 
         self.rect = self.image.get_rect()
-        self.rect.center = (0, 0)
+        self.largeRect = self.rect.inflate(2,2)
 
         self.pos = vec(0, 0)
 
@@ -47,9 +48,13 @@ class Player(pg.sprite.Sprite):
         self.pos.y = dataRecv[str(self.data["player"])]["y"]
 
         size = dataRecv[str(self.data["player"])]["size"]
-        if self.size != size:
-            self.image = pg.transform.scale(self.image, (size, size))
-            self.size = size
+        if size == 50:
+            self.image = self.normalImage
+            self.rect = self.pos
+        else:
+            self.image = self.largeImage
+            self.rect.x = self.pos.x - 10
+            self.rect.y = self.pos.y - 10
 
 
-        self.rect.center = self.pos
+

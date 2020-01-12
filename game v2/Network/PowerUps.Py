@@ -3,9 +3,10 @@ import pygame as pg
 vec = pg.math.Vector2
 
 class PowerUps:
-    def __init__(self, x, y, abilityType):
+    def __init__(self, x, y, abilityType, name):
         self.pos = vec(x, y)
         self.abilityType = abilityType
+        self.name = name
 
         self.coolDownTime = 0
         self.nextUseTime = 0
@@ -37,7 +38,7 @@ class PowerUps:
 
 class Blink(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Utility")
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Utility", "Blink")
 
     def do(self, player, target):
         self.pos = vec(random.randrange(180, 1090), random.randrange(150, 570))
@@ -48,7 +49,7 @@ class Blink(PowerUps):
 
 class Growth(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Defence")
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Defence", "Growth")
         self.activeTime = 6
 
     def do(self, player, target):
@@ -68,7 +69,7 @@ class Growth(PowerUps):
 
 class Gun(PowerUps):
     def __init__(self):
-        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Attack")
+        super().__init__(random.randrange(180, 1090), random.randrange(150, 570), "Attack", "Gun")
         self.activeTime = 10
         self.charges = 3
         self.coolDownTime = 0.5

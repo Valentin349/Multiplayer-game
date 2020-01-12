@@ -18,6 +18,7 @@ class Game:
 
         self.net = Network(PORT)
 
+        self.id = None
         self.idCounter = 1
 
     def new(self):
@@ -34,9 +35,10 @@ class Game:
         self.player2 = Player(50, 50)
         self.HpBar1 = HealthBar(1150,10,120,40)
         self.HpBar2 = HealthBar(1150, 50, 120, 40)
+        self.hud = AbilityHud(615,650,110,50)
 
 
-        self.objs.add(self.abilityBlock, self.HpBar1, self.HpBar2)
+        self.objs.add(self.abilityBlock, self.HpBar1, self.HpBar2, self.hud)
         self.players.add(self.player1, self.player2)
 
         for player in self.players:
@@ -83,7 +85,7 @@ class Game:
             self.SURFACE.blit(objects.image, objects.rect)
 
         for players in self.players:
-            self.SURFACE.blit(players.image, players.pos)
+            self.SURFACE.blit(players.image, players.rect)
 
     def dataSend(self, data):
         dataRecv = self.net.send(data)
@@ -107,6 +109,7 @@ class Game:
         pressedKey = pg.key.get_pressed()
 
         if pg.mouse.get_pressed()[0]:
+            self.hud.cooldownStart("pickup", pg.time.get_ticks() / 1000)
             mousePos = pg.mouse.get_pos()
             self.player1.data["inputs"]["mousePressed"] = 1
             self.player1.data["inputs"]["mouseX"] = mousePos[0]
@@ -122,6 +125,7 @@ class Game:
             self.player1.data["inputs"]["d"] = 1
         if pressedKey[pg.K_SPACE]:
             self.player1.data["inputs"]["space"] = 1
+            self.hud.cooldownStart("side", pg.time.get_ticks() / 1000)
 
 
         self.player1.data["dt"] = dt

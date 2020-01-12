@@ -74,7 +74,7 @@ class Server(Thread):
                         if self.P2physics.collision(self.ability, self.obstacles):
                             self.ability = None
 
-                reply = self.reply()
+                reply = self.reply(addr)
 
                 if not dataRecieved:
                     # if no data is received assume disconnected
@@ -96,7 +96,7 @@ class Server(Thread):
             self.ability = random.choice(self.powerUps)
             self.abilityCreateTime = createTime + cooldown
 
-    def reply(self):
+    def reply(self, addr):
         if self.ability is not None:
             box = {"x": self.ability.pos.x,
                    "y": self.ability.pos.y,
@@ -106,6 +106,7 @@ class Server(Thread):
             box = None
 
         if self.P1physics.ability is not None:
+            abilityNameP1 = self.P1physics.ability.name
             if self.P1physics.ability.objectPos is not None:
                 abilityObjectP1 = {"x": self.P1physics.ability.objectPos.x,
                                    "y": self.P1physics.ability.objectPos.y,
@@ -115,35 +116,43 @@ class Server(Thread):
                 abilityObjectP1 = None
         else:
             abilityObjectP1 = None
+            abilityNameP1 = None
+
 
         if self.P2physics.ability is not None:
+            abilityNameP2 = self.P2physics.ability.name
             if self.P2physics.ability.objectPos is not None:
                 abilityObjectP2 = {"x": self.P2physics.ability.objectPos.x,
                                    "y": self.P2physics.ability.objectPos.y,
-                                   "Type": self.P2physics.ability.objectType
+                                   "Type": self.P2physics.ability.objectType,
                                    }
             else:
                 abilityObjectP2 = None
         else:
             abilityObjectP2 = None
+            abilityNameP2 = None
 
         if self.P1physics.lives <= 0 or self.P2physics.lives <= 0:
             gameEnd = True
         else:
             gameEnd = False
 
-        reply = {"1": {"x": self.P1physics.pos.x,
+        reply = {"id": self.playerIdList.index(addr)+1,
+
+                 "1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
                        "size": self.P1physics.size,
                        "lives": self.P1physics.lives,
-                       "hp": self.P1physics.hp
+                       "hp": self.P1physics.hp,
+                       "ability": abilityNameP1
                        },
 
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
                        "size": self.P2physics.size,
                        "lives": self.P2physics.lives,
-                       "hp": self.P2physics.hp
+                       "hp": self.P2physics.hp,
+                       "ability": abilityNameP2
                        },
 
                  "abilityBox": box,
