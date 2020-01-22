@@ -20,7 +20,7 @@ class SpriteSheet:
         return [self.loadSprite(rect, colorkey) for rect in rects]
 
     def load_grid_images(self, num_rows, num_cols, x_margin=0, x_padding=0,
-                         y_margin=0, y_padding=0):
+                         y_margin=0, y_padding=0, colourkey=None):
         """Load a grid of images.
         x_margin is space between top of sheet and top of first row.
         x_padding is space between rows.
@@ -49,7 +49,7 @@ class SpriteSheet:
                 sprite_rect = (x, y, x_sprite_size, y_sprite_size)
                 sprite_rects.append(sprite_rect)
 
-        grid_images = self.loadMultipleSprites(sprite_rects)
+        grid_images = self.loadMultipleSprites(sprite_rects, colourkey)
         print(f"Loaded {len(grid_images)} grid images.")
 
         return grid_images
@@ -244,4 +244,48 @@ class AbilityHud(pg.sprite.Sprite):
             self.cd2TimeStart = time
 
 
+class Button(pg.sprite.Sprite):
+    def __init__(self, x, y, w, h, style, growth=False, text=None):
+        pg.sprite.Sprite.__init__(self)
+
+        sprites = SpriteSheet("UIpackSheet_transparent.png")
+        self.sprites = sprites.load_grid_images(3, 12, 1, 4, 1, 4, TrueBLACK)
+
+        self.imageNormal = pg.transform.scale(self.sprites[style], (w, h))
+        self.image = self.imageNormal
+
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.centerEnlarged = (x - 3, y - 3)
+        self.centerNormal = (x, y)
+
+        self.textSurface = None
+        font = pg.font.Font("Pixeled.ttf", 10)
+        if text is not None:
+            self.textSurface = font.render(text, True, BLACK)
+            self.textSurface = pg.transform.scale(self.textSurface, (int(w/2), int(h/2)))
+            self.textRect = self.textSurface.get_rect()
+            self.textRect.center = (w/2,h/2)
+            self.imageNormal.blit(self.textSurface, self.textRect)
+
+        self.imageLarge = pg.transform.scale(self.imageNormal, (w + 6, h + 6))
+
+        self.growth = growth
+
+        self.clicked = False
+
+    def update(self):
+        if self.growth:
+            mousePos = pg.mouse.get_pos()
+            if self.rect.collidepoint(mousePos):
+                self.image = self.imageLarge
+                self.rect.center = self.centerEnlarged
+            else:
+                self.image = self.imageNormal
+                self.rect.center = self.centerNormal
+
+        self.clicked = False
+
+    def click(self):
+        self.clicked = True
 

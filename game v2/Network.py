@@ -3,15 +3,16 @@ import Package
 
 
 class Network:
-    def __init__(self, PORT):
-        self.ip = self.searchNetwork()
+    def __init__(self):
+        self.PORT = 5555
+        self.ip = None
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.addr = (self.ip, PORT)
     def send(self, data):
+        addr = (self.ip, self.PORT)
         try:
             dataSent = Package.pack(data)
-            self.client.sendto(dataSent, self.addr)
+            self.client.sendto(dataSent, addr)
             
             data, server = self.client.recvfrom(2048)
             dataRecieved = Package.unpack(data)
@@ -21,6 +22,7 @@ class Network:
 
     def searchNetwork(self):
         port = 5544
+        result = None
         for ending in range(0, 20):
             addr = socket.gethostbyname(socket.gethostname())[:-2] + str(ending)
             print(addr)
@@ -32,3 +34,5 @@ class Network:
             if result == 0:
                 socket.setdefaulttimeout(None)
                 return addr
+        if result != 0:
+            return None

@@ -86,7 +86,7 @@ class PhysicsEngine:
                 for obstacle in objects:
                     if playerRect.colliderect(obstacle):
                         if self.vel.magnitude() > 0.6:
-                            target.hp -= (self.vel.magnitude() - 0.6) * 100
+                            target.hp -= (self.vel.magnitude() - 0.6) * 100 *2
                         self.vel *= -1.4
 
                 if self.ability is not None:
