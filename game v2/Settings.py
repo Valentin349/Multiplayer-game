@@ -13,5 +13,5 @@ GREEN = (7, 171, 53)
 PURPLE = (49, 11, 92)
 
 # player properties
-ACCELERATION = 0.00001
+ACCELERATION = 0.02
 FRICTION = -0.05

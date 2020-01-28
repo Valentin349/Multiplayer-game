@@ -20,6 +20,9 @@ class Network:
         except socket.error as error:
             print(str(error))
 
+    def exit(self):
+        self.ip = None
+
     def searchNetwork(self):
         port = 5544
         result = None

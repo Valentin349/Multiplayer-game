@@ -1,10 +1,13 @@
 import pygame as pg
 import pytmx
 from Settings import *
+from os import path
 
 class SpriteSheet:
     def __init__(self, file):
-        self.sheet = pg.image.load(file).convert()
+        mainFolder = path.dirname(__file__)
+        assetsFolder = path.join(mainFolder, "Assets")
+        self.sheet = pg.image.load(path.join(assetsFolder, file)).convert()
 
     def loadSprite(self, rectangle, colourkey = None):
         rect = pg.Rect(rectangle)
@@ -68,7 +71,9 @@ class Wall(pg.sprite.Sprite):
 
 class TiledMap:
     def __init__(self, filename):
-        tm = pytmx.load_pygame(filename, pixelalpha=True)
+        mainFolder = path.dirname(__file__)
+        mapFolder = path.join(mainFolder, "Maps")
+        tm = pytmx.load_pygame(path.join(mapFolder, filename), pixelalpha=True)
         self.width = tm.width * tm.tilewidth
         self.height = tm.height * tm.tileheight
         self.tmxData = tm
@@ -99,6 +104,7 @@ class AbilityBlock(pg.sprite.Sprite):
         self.x = x
         self.y = y
         self.image = pg.Surface((w, h))
+
         sprites = SpriteSheet("Dungeon Tileset.png")
         self.sprites = sprites.loadMultipleSprites(((32, 96, 16, 16), (48, 96, 16, 16), (64, 96, 16, 16)), TrueBLACK)
         self.rect = self.image.get_rect()
@@ -260,7 +266,10 @@ class Button(pg.sprite.Sprite):
         self.centerNormal = (x, y)
 
         self.textSurface = None
-        font = pg.font.Font("Pixeled.ttf", 10)
+
+        mainFolder = path.dirname(__file__)
+        assetsFolder = path.join(mainFolder, "Assets")
+        font = pg.font.Font(path.join(assetsFolder, "Pixeled.ttf"), 10)
         if text is not None:
             self.textSurface = font.render(text, True, BLACK)
             self.textSurface = pg.transform.scale(self.textSurface, (int(w/2), int(h/2)))

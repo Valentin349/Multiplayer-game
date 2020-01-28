@@ -5,6 +5,7 @@ from Player import Player
 from Objects import *
 
 from Network import Network
+from ServerSide.Server import Server
 
 class Game:
     def __init__(self):
@@ -24,7 +25,9 @@ class Game:
         self.idCounter = 1
 
         self.net = Network()
+        self.server = None
         self.ip = None
+
 
     def new(self):
         # load objects and players
@@ -68,8 +71,17 @@ class Game:
                     self.paused = False
             elif button == self.exitButton:
                 if button.clicked:
-                    # leave server
-                    pass
+                    if self.server is not None:
+                        self.server.kill()
+                        self.server = None
+
+                    self.net.exit()
+                    self.buttons.empty()
+                    self.inGame = False
+                    self.gameEnd = True
+                    self.paused = False
+
+
 
         if self.abilityBlock not in self.objs and dataRecv["abilityBox"] is not None:
             self.objs.add(self.abilityBlock)
@@ -94,8 +106,6 @@ class Game:
             elif obj == self.HpBar2:
                 obj.update(dataRecv["2"])
 
-
-
     def draw(self):
         self.SURFACE.blit(self.map.image, self.map.rect)
 
@@ -110,12 +120,6 @@ class Game:
     def dataSend(self, data):
         dataRecv = self.net.send(data)
         return dataRecv
-
-    def sendStartingData(self):
-        data = {"objects": []}
-        for obsticle in self.obstacles:
-            data["objects"].append([obsticle.rect.x, obsticle.rect.y, obsticle.rect.width, obsticle.rect.height])
-        self.net.send(data)
 
     def updateInputs(self, dt):
         # resets inputs
@@ -183,10 +187,19 @@ class Game:
                         readIndex += 1
                         if readIndex >= len(playerSprites):
                             readIndex -= len(playerSprites)
+
                 elif button == exitButton:
                     if button.clicked:
                         self.running = False
                         self.inGame = True
+
+                elif button == hostButton:
+                    if button.clicked:
+                        self.inGame = True
+                        self.gameEnd = False
+                        self.server = Server(self.obstacles)
+                        self.net.ip = self.server.IP
+                        self.buttons.empty()
 
                 elif button == joinButton:
                     if button.clicked:
@@ -203,6 +216,7 @@ class Game:
                     if button.clicked:
                         self.net.ip = self.ip
                         self.inGame = True
+                        self.gameEnd = False
                         self.buttons.empty()
 
                 elif button == backButton:
@@ -227,8 +241,11 @@ class Game:
         if self.paused:
             if len(self.buttons) == 0:
                 self.buttons.add(self.backgroundButton, self.exitButton, self.backButton)
+                for button in self.buttons:
+                    button.image.set_alpha(190)
         else:
             self.buttons.empty()
+
     def ServerBrowser(self):
         self.SURFACE.fill(BLACK)
         searchBox = Button(640, 200, 250, 100, 3, False, "SEARCHING...")
@@ -248,12 +265,12 @@ class Game:
             NoServers = Button(640, 200, 550, 100, 3, False, "NO SERVERS FOUND ON LOCAL NETWORK")
             self.buttons.add(NoServers)
 
-
     def events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
                 self.inGame = True
+                self.gameEnd = True
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 for button in self.buttons:
@@ -261,7 +278,7 @@ class Game:
                         button.click()
 
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
+                if event.key == pg.K_ESCAPE and self.inGame:
                     if self.paused:
                         self.paused = False
                     else:
