@@ -20,10 +20,14 @@ class PhysicsEngine:
         self.nextDashTime = 0
         self.ability = None
         self.abilityActive = False
+        
+        self.skinId = 0
 
-    def update(self, data, dt):
+    def update(self, data, dt, skinID):
         # resets acceleration
         self.acc = vec(0, 0)
+        
+        self.skinId = skinID
 
         if data["mousePressed"] and self.ability is not None:
             if (not self.abilityActive or self.ability.charges > 0) and self.ability.cooldown():

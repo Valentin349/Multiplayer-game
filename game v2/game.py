@@ -28,7 +28,6 @@ class Game:
         self.server = None
         self.ip = None
 
-
     def new(self):
         # load objects and players
         self.players = pg.sprite.Group()
@@ -71,6 +70,7 @@ class Game:
                     self.paused = False
             elif button == self.exitButton:
                 if button.clicked:
+                    button.clicked = False
                     if self.server is not None:
                         self.server.kill()
                         self.server = None
@@ -151,8 +151,8 @@ class Game:
             self.player1.data["inputs"]["space"] = 1
             self.hud.cooldownStart("side", pg.time.get_ticks() / 1000)
 
-        self.player1.data["dt"] = dt
-
+        self.player1.data["dt"] = dt    
+        
     def StartScreen(self):
         hostButton = Button(640, 400, 150, 80, 3, True, "HOST")
         joinButton = Button(640, 500, 150, 80, 3, True, "JOIN")
@@ -197,6 +197,7 @@ class Game:
                     if button.clicked:
                         self.inGame = True
                         self.gameEnd = False
+                        self.player1.data["skin"] = readIndex
                         self.server = Server(self.obstacles)
                         self.net.ip = self.server.IP
                         self.buttons.empty()
@@ -215,6 +216,7 @@ class Game:
                 elif button == self.serverButton:
                     if button.clicked:
                         self.net.ip = self.ip
+                        self.player1.data["skin"] = readIndex
                         self.inGame = True
                         self.gameEnd = False
                         self.buttons.empty()

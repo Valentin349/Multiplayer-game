@@ -78,13 +78,13 @@ class Server:
                 self.createPowerUp()
                 if self.gameStarted:
                     if self.playerIdList[0] == addr:
-                        self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"])
+                        self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"])
                         self.P1physics.collision(self.P2physics, self.obstacles)
                         if self.ability is not None:
                             if self.P1physics.collision(self.ability, self.obstacles):
                                 self.ability = None
                     else:
-                        self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"])
+                        self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"])
                         self.P2physics.collision(self.P1physics, self.obstacles)
                         if self.ability is not None:
                             if self.P2physics.collision(self.ability, self.obstacles):
@@ -151,6 +151,7 @@ class Server:
                  "1": {"x": self.P1physics.pos.x,
                        "y": self.P1physics.pos.y,
                        "size": self.P1physics.size,
+                       "skin": self.P1physics.skinId,
                        "lives": self.P1physics.lives,
                        "hp": self.P1physics.hp,
                        "ability": abilityNameP1
@@ -159,6 +160,7 @@ class Server:
                  "2": {"x": self.P2physics.pos.x,
                        "y": self.P2physics.pos.y,
                        "size": self.P2physics.size,
+                       "skin": self.P2physics.skinId,
                        "lives": self.P2physics.lives,
                        "hp": self.P2physics.hp,
                        "ability": abilityNameP2
