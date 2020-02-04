@@ -19,7 +19,7 @@ class TcpServer:
         except socket.error as error:
             print(str(error))
 
-        self.sock.listen()
+        self.sock.listen(1)
         print("Tcp Socket is listening")
 
 class Server:
@@ -28,6 +28,7 @@ class Server:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.IP = socket.gethostbyname(socket.gethostname())
         self.PORT = 5555
+        self.sock.settimeout(5)
 
         self.tcp = TcpServer()
 
@@ -74,9 +75,11 @@ class Server:
                     break
 
                 dataRecieved = Package.unpack(dataRecieved)
+                if dataRecieved == "ExitRequest":
+                    self.gameEnd = True
 
                 self.createPowerUp()
-                if self.gameStarted:
+                if self.gameStarted and not self.gameEnd:
                     if self.playerIdList[0] == addr:
                         self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"])
                         self.P1physics.collision(self.P2physics, self.obstacles)
@@ -94,7 +97,7 @@ class Server:
                 dataSend = Package.pack(reply)
                 self.sock.sendto(dataSend, addr)
             except socket.error as error:
-                print(error)
+                print(str(error))
                 break
 
     def createPowerUp(self):
@@ -142,9 +145,12 @@ class Server:
             abilityNameP2 = None
 
         if self.P1physics.lives <= 0 or self.P2physics.lives <= 0:
-            gameEnd = True
+            if self.P1physics.lives < self.P2physics.lives:
+                winner = 2
+            else:
+                winner = 1
         else:
-            gameEnd = False
+            winner = None
 
         reply = {"id": self.playerIdList.index(addr)+1,
 
@@ -171,8 +177,8 @@ class Server:
                  "abilityObject1": abilityObjectP1,
                  "abilityObject2": abilityObjectP2,
 
-                 "gameEnd": gameEnd
-
+                 "winner": winner,
+                 "gameEnd": self.gameEnd
                  }
         return reply
 

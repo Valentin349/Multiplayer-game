@@ -7,6 +7,7 @@ class Network:
         self.PORT = 5555
         self.ip = None
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.client.settimeout(2)
 
     def send(self, data):
         addr = (self.ip, self.PORT)
@@ -17,11 +18,17 @@ class Network:
             data, server = self.client.recvfrom(2048)
             dataRecieved = Package.unpack(data)
             return dataRecieved
-        except socket.error as error:
-            print(str(error))
+        except socket.timeout:
+            self.exit()
 
     def exit(self):
         self.ip = None
+
+    def leaveRequest(self):
+        try:
+            self.send("ExitRequest")
+        except:
+            pass
 
     def searchNetwork(self):
         port = 5544

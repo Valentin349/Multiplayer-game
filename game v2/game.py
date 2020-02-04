@@ -20,6 +20,7 @@ class Game:
         self.inGame = False
         self.gameEnd = False
         self.paused = False
+        self.won = False
 
         self.id = None
         self.idCounter = 1
@@ -47,8 +48,11 @@ class Game:
 
         #Buttons
         self.backgroundButton = Button(640, 350, 350, 400, 3, False)
-        self.exitButton = Button(640, 300, 150, 80, 3, True, "QUIT")
-        self.backButton = Button(640, 400, 150, 80, 3, True, "BACK")
+        self.disconnectButton = Button(640, 300, 650, 200, 3, False, "Lost Connection")
+        self.loseButton = Button(640, 300, 350, 200, 3, False, "YOU LOSE")
+        self.winButton = Button(640, 300, 350, 200, 3, False, "YOU WIN")
+        self.exitButton = Button(640, 450, 150, 80, 3, True, "QUIT")
+        self.backButton = Button(640, 300, 150, 80, 3, True, "BACK")
 
 
         self.objs.add(self.abilityBlock, self.HpBar1, self.HpBar2, self.hud)
@@ -62,7 +66,7 @@ class Game:
             if tileObject.name == "wall":
                 self.obstacles.add(Wall(tileObject.x*3.64, tileObject.y*3, tileObject.width*3.64, tileObject.height*3))
 
-    def updateGameState(self, dataRecv):
+    def updateGameState(self, dataRecv=None):
 
         for button in self.buttons:
             if button == self.backButton:
@@ -74,6 +78,8 @@ class Game:
                     if self.server is not None:
                         self.server.kill()
                         self.server = None
+                    else:
+                        self.net.leaveRequest()
 
                     self.net.exit()
                     self.buttons.empty()
@@ -81,30 +87,30 @@ class Game:
                     self.gameEnd = True
                     self.paused = False
 
-
-
-        if self.abilityBlock not in self.objs and dataRecv["abilityBox"] is not None:
-            self.objs.add(self.abilityBlock)
-
-        if self.abilityObject1 not in self.objs and dataRecv["abilityObject1"] is not None:
-            self.objs.add(self.abilityObject1)
-        if self.abilityObject2 not in self.objs and dataRecv["abilityObject2"] is not None:
-            self.objs.add(self.abilityObject2)
-
-        self.players.update(dataRecv)
         self.buttons.update()
 
-        for obj in self.objs:
-            if obj not in [self.abilityObject1, self.abilityObject2, self.HpBar1, self.HpBar2]:
-                obj.update(dataRecv)
-            elif obj == self.abilityObject1:
-                obj.update(dataRecv["abilityObject1"])
-            elif obj == self.abilityObject2:
-                obj.update(dataRecv["abilityObject2"])
-            elif obj == self.HpBar1:
-                obj.update(dataRecv["1"])
-            elif obj == self.HpBar2:
-                obj.update(dataRecv["2"])
+        if dataRecv is not None:
+            if self.abilityBlock not in self.objs and dataRecv["abilityBox"] is not None:
+                self.objs.add(self.abilityBlock)
+
+            if self.abilityObject1 not in self.objs and dataRecv["abilityObject1"] is not None:
+                self.objs.add(self.abilityObject1)
+            if self.abilityObject2 not in self.objs and dataRecv["abilityObject2"] is not None:
+                self.objs.add(self.abilityObject2)
+
+            self.players.update(dataRecv)
+
+            for obj in self.objs:
+                if obj not in [self.abilityObject1, self.abilityObject2, self.HpBar1, self.HpBar2]:
+                    obj.update(dataRecv)
+                elif obj == self.abilityObject1:
+                    obj.update(dataRecv["abilityObject1"])
+                elif obj == self.abilityObject2:
+                    obj.update(dataRecv["abilityObject2"])
+                elif obj == self.HpBar1:
+                    obj.update(dataRecv["1"])
+                elif obj == self.HpBar2:
+                    obj.update(dataRecv["2"])
 
     def draw(self):
         self.SURFACE.blit(self.map.image, self.map.rect)
@@ -160,6 +166,8 @@ class Game:
         backButton = Button(440, 500, 150, 80, 3, True, "BACK")
         sideButton1 = Button(490, 250, 80, 80, 28, True)
         sideButton2 = Button(790, 250, 80, 80, 29, True)
+
+        self.won = False
 
         self.serverButton = None
         refreshButton = Button(840, 500, 150, 80, 3, True, "REFRESH")
@@ -237,7 +245,11 @@ class Game:
             pg.display.flip()
 
     def EndScreen(self):
-        pass
+        if len(self.buttons) == 0:
+            if self.won:
+                self.buttons.add(self.winButton, self.exitButton)
+            else:
+                self.buttons.add(self.loseButton, self.exitButton)
 
     def PauseMenu(self):
         if self.paused:
@@ -247,6 +259,10 @@ class Game:
                     button.image.set_alpha(190)
         else:
             self.buttons.empty()
+
+    def disconnect(self):
+        if len(self.buttons) == 0:
+            self.buttons.add(self.disconnectButton, self.exitButton)
 
     def ServerBrowser(self):
         self.SURFACE.fill(BLACK)
