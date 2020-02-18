@@ -5,7 +5,7 @@ import pygame as pg
 import threading
 from ServerSide.Physics import *
 from ServerSide.PowerUps import *
-from ServerSide.Settings import *
+from Settings import *
 import Package
 
 class TcpServer:
@@ -19,7 +19,7 @@ class TcpServer:
         except socket.error as error:
             print(str(error))
 
-        self.sock.listen(1)
+        self.sock.listen()
         print("Tcp Socket is listening")
 
 class Server:
@@ -71,6 +71,8 @@ class Server:
                         self.playerIdList.append(addr)
                         if len(self.playerIdList) == 2:
                             self.gameStarted = True
+                            self.killTcp()
+
                 except:
                     break
 
@@ -81,16 +83,18 @@ class Server:
                 self.createPowerUp()
                 if self.gameStarted and not self.gameEnd:
                     if self.playerIdList[0] == addr:
-                        self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"])
-                        self.P1physics.collision(self.P2physics, self.obstacles)
+                        self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"]
+                                              , self.obstacles)
+                        self.P1physics.collision(self.P2physics)
                         if self.ability is not None:
-                            if self.P1physics.collision(self.ability, self.obstacles):
+                            if self.P1physics.collision(self.ability):
                                 self.ability = None
                     else:
-                        self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"])
-                        self.P2physics.collision(self.P1physics, self.obstacles)
+                        self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"]
+                                              , self.obstacles)
+                        self.P2physics.collision(self.P1physics)
                         if self.ability is not None:
-                            if self.P2physics.collision(self.ability, self.obstacles):
+                            if self.P2physics.collision(self.ability):
                                 self.ability = None
 
                 reply = self.reply(addr)
@@ -178,6 +182,7 @@ class Server:
                  "abilityObject2": abilityObjectP2,
 
                  "winner": winner,
+                 "gameStarted":self.gameStarted,
                  "gameEnd": self.gameEnd
                  }
         return reply
@@ -186,3 +191,5 @@ class Server:
         self.sock.close()
         self.tcp.sock.close()
 
+    def killTcp(self):
+        self.tcp.sock.close()

@@ -9,7 +9,7 @@ class PhysicsEngine:
         self.pos = vec(spawnX, spawnY)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
-        self.maxVel = 1
+        self.maxVel = 1.5
 
         self.size = 50
         self.mass = 1
@@ -23,7 +23,7 @@ class PhysicsEngine:
         
         self.skinId = 0
 
-    def update(self, data, dt, skinID):
+    def update(self, data, dt, skinID, obstacles):
         # resets acceleration
         self.acc = vec(0, 0)
         
@@ -63,6 +63,14 @@ class PhysicsEngine:
         # applies friction
         self.acc += self.vel * FRICTION
         # accelerates
+        playerRect = pg.Rect(self.pos.x, self.pos.y, self.size, self.size)
+        for obstacle in obstacles:
+            if playerRect.colliderect(obstacle):
+                if self.vel.magnitude() > 0.6:
+                    self.hp -= (self.vel.magnitude() - 0.6) * 100
+                self.vel *= -1
+                self.acc *= 0
+
         self.vel += self.acc
         if self.vel.magnitude() > self.maxVel:
             self.vel = self.vel.normalize() * self.maxVel
@@ -73,44 +81,39 @@ class PhysicsEngine:
         coolDown = 2
         timeUsed = pg.time.get_ticks() / 1000
         if timeUsed > self.nextDashTime:
-            self.vel *= 3.5
+            self.vel *= 3.75
             self.nextDashTime = timeUsed + coolDown
 
-    def collision(self, target, objects):
-        collided = False
+    def collision(self, target):
+        playerCollision = False
 
         diff = self.pos - target.pos
         distance = diff.magnitude()
 
-        playerRect = pg.Rect(self.pos.x, self.pos.y, self.size, self.size)
+
         if target is not None:
             if self.__class__.__name__ == target.__class__.__name__:
-
-                for obstacle in objects:
-                    if playerRect.colliderect(obstacle):
-                        if self.vel.magnitude() > 0.6:
-                            self.hp -= (self.vel.magnitude() - 0.6) * 100 *2
-                        self.vel *= -1.4
 
                 if self.ability is not None:
                     if self.ability.objectPos is not None:
                         targetRect = pg.Rect(target.pos.x, target.pos.y, target.size, target.size)
                         if targetRect.colliderect(self.ability.objectRect):
                             posDiff = target.pos - self.ability.objectPos
-                            velDiff = target.vel - (self.ability.objectDirection * self.ability.objectVel)
+                            velDiff = target.vel - (self.ability.objectDirection * self.ability.objectVel*2)
                             impact = posDiff.dot(velDiff)
 
                             posUnitVec = posDiff / posDiff.magnitude_squared()
                             impulse = impact * posUnitVec
                             target.vel += target.vel - impulse
+                            self.ability.objectDirection -= target.vel - impulse
 
                 if self.size == target.size:
                     if distance <= self.size:
-                        collided = True
+                        playerCollision = True
                 elif distance <= 60:
-                    collided = True
+                    playerCollision = True
 
-                if collided and self.vel.magnitude() > target.vel.magnitude():
+                if playerCollision and self.vel.magnitude() > target.vel.magnitude():
 
                     posDiff = target.pos - self.pos
                     velDiff = target.vel - self.vel

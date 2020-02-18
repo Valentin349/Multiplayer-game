@@ -53,6 +53,7 @@ class Game:
         self.winButton = Button(640, 300, 350, 200, 3, False, "YOU WIN")
         self.exitButton = Button(640, 450, 150, 80, 3, True, "QUIT")
         self.backButton = Button(640, 300, 150, 80, 3, True, "BACK")
+        self.waitingButton = Button(640, 350, 950, 500, 3, False, "Waiting  for  Player")
 
 
         self.objs.add(self.abilityBlock, self.HpBar1, self.HpBar2, self.hud)
@@ -86,6 +87,9 @@ class Game:
                     self.inGame = False
                     self.gameEnd = True
                     self.paused = False
+            elif button == self.waitingButton:
+                if dataRecv is not None and dataRecv["gameStarted"]:
+                    self.buttons.remove(self.waitingButton)
 
         self.buttons.update()
 
@@ -209,6 +213,7 @@ class Game:
                         self.server = Server(self.obstacles)
                         self.net.ip = self.server.IP
                         self.buttons.empty()
+                        self.buttons.add(self.waitingButton)
 
                 elif button == joinButton:
                     if button.clicked:
@@ -258,7 +263,8 @@ class Game:
                 for button in self.buttons:
                     button.image.set_alpha(190)
         else:
-            self.buttons.empty()
+            if self.buttons.has(self.backgroundButton, self.exitButton, self.backButton):
+                self.buttons.remove(self.backgroundButton, self.exitButton, self.backButton)
 
     def disconnect(self):
         if len(self.buttons) == 0:
