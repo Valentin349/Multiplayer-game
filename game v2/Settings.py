@@ -14,4 +14,4 @@ PURPLE = (49, 11, 92)
 
 # player properties
 ACCELERATION = 0.029
-FRICTION = -0.042
+FRICTION = -0.045

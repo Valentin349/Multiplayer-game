@@ -181,6 +181,7 @@ class Game:
         playerSpriteSheet = SpriteSheet("inca_back2.png")
         playerSprites = playerSpriteSheet.load_grid_images(2,5)
 
+        # index of the character model in sprite list
         readIndex = 0
         menu = "main"
         while not self.inGame:
@@ -188,16 +189,21 @@ class Game:
             self.buttons.update()
             self.events()
             for button in self.buttons:
+                #left button for character slide
                 if button == sideButton1:
                     if button.clicked:
                         readIndex -= 1
                         if readIndex < 0:
+                            # negative numbers are subtracted from the end of the list
+                            # gives impression of looping
                             readIndex = len(playerSprites) + readIndex
 
+                # right button for the character slide
                 elif button == sideButton2:
                     if button.clicked:
                         readIndex += 1
                         if readIndex >= len(playerSprites):
+                            # whole length is subtracted from current position making it seem that it loops
                             readIndex -= len(playerSprites)
 
                 elif button == exitButton:

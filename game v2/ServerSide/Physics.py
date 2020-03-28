@@ -56,24 +56,24 @@ class PhysicsEngine:
             self.acc.x -= ACCELERATION
         if data["space"]:
             self.dash()
-        if self.acc.x != 0 and self.acc.y != 0:
-            self.acc.x *= 0.7071
-            self.acc.y *= 0.7071
 
         # applies friction
         self.acc += self.vel * FRICTION
-        # accelerates
+
+        # creates a rect for the player for collision check
         playerRect = pg.Rect(self.pos.x, self.pos.y, self.size, self.size)
         for obstacle in obstacles:
             if playerRect.colliderect(obstacle):
                 if self.vel.magnitude() > 0.6:
                     self.hp -= (self.vel.magnitude() - 0.6) * 100
+                #check if the wall is horizontal or vertical to know which way to reflect the velocity
                 if obstacle.right - obstacle.left > obstacle.bottom - obstacle.top:
                     self.vel.y *= -1
                 else:
                     self.vel.x *= -1
                 self.acc *= 0
 
+        # accelerates
         self.vel += self.acc
         if self.vel.magnitude() > self.maxVel:
             self.vel = self.vel.normalize() * self.maxVel
@@ -95,9 +95,11 @@ class PhysicsEngine:
 
 
         if target is not None:
+            #check if the collision is with a pick up of a physics object
             if self.__class__.__name__ == target.__class__.__name__:
-
+                # checks if collision with ability object needs to be done
                 if self.ability is not None:
+                    #error handling
                     if self.ability.objectPos is not None:
                         targetRect = pg.Rect(target.pos.x, target.pos.y, target.size, target.size)
                         if targetRect.colliderect(self.ability.objectRect):
@@ -105,32 +107,42 @@ class PhysicsEngine:
                             velDiff = target.vel - (self.ability.objectDirection * self.ability.objectVel*2)
                             impact = posDiff.dot(velDiff)
 
+                            #direction in which the impulse is acting
                             posUnitVec = posDiff / posDiff.magnitude_squared()
+                            #size of the impulse
                             impulse = impact * posUnitVec
+                            #impulse is added to both objects
                             target.vel += target.vel - impulse
                             self.ability.objectDirection -= target.vel - impulse
 
+                # checks if there is a collision with normal size players, large size players or normal and large
                 if self.size == target.size:
                     if distance <= self.size:
                         playerCollision = True
                 elif distance <= 60:
                     playerCollision = True
 
+                # error handling so that there isn't multiple collisions in 1 frame
                 if playerCollision and self.vel.magnitude() > target.vel.magnitude():
 
                     posDiff = target.pos - self.pos
                     velDiff = target.vel - self.vel
                     impact = posDiff.dot(velDiff)
 
+                    # direction in which the impulse is acting
                     posUnitVec = posDiff / posDiff.magnitude_squared()
+                    # size of the impulse
                     impulse = impact * posUnitVec
 
+                    # impulse is added to both objects with mass included
                     target.vel += (target.vel - impulse)*((2*self.mass)/target.mass + self.mass)
                     self.vel -= (self.vel - impulse)*((2*target.mass)/target.mass + self.mass)*0.6
 
             else:
+                # collision is with non physics object
                 if distance <= 50 and self.ability is None:
                     self.ability = target
                     return True
         else:
+            # no collisions
             return False
