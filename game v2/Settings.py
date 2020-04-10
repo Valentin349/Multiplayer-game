@@ -1,3 +1,7 @@
+"""basic settings and constants used withing the game
+    changes to physics by adjusting numbers, colours and window data is adjusted here"""
+
+
 # game options
 WIDTH = 1280
 HEIGHT = 720

@@ -6,6 +6,7 @@ vec = pg.math.Vector2
 class PhysicsEngine:
 
     def __init__(self, spawnX, spawnY):
+        #basic physics variables for rigid bodies
         self.pos = vec(spawnX, spawnY)
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
@@ -29,23 +30,29 @@ class PhysicsEngine:
         
         self.skinId = skinID
 
+        #if mouse input use ability if the player has one
         if data["mousePressed"] and self.ability is not None:
             if (not self.abilityActive or self.ability.charges > 0) and self.ability.cooldown():
                 self.ability.do(self, vec(data["mouseX"], data["mouseY"]))
                 print(data["mouseX"], data["mouseY"])
                 self.abilityActive = True
 
+        #abiliy updates
         if self.abilityActive:
             self.ability.update()
+            #cooldown check
             if (pg.time.get_ticks() / 1000) > self.ability.timeUsed + self.ability.activeTime:
+                # if ability is active and it has decayed remove it from player
                 self.ability.destroy(self)
                 self.ability = None
                 self.abilityActive = False
 
+        #updates lives based on hp
         if self.hp <= 0:
             self.hp = 100
             self.lives -= 1
 
+        #adds directional acceleration
         if data["u"]:
             self.acc.y -= ACCELERATION
         if data["d"]:
@@ -78,11 +85,14 @@ class PhysicsEngine:
         if self.vel.magnitude() > self.maxVel:
             self.vel = self.vel.normalize() * self.maxVel
 
+        #updates position
         self.pos += (self.vel + 0.5 * self.acc) * dt
 
     def dash(self):
+        #dash ability
         coolDown = 2
         timeUsed = pg.time.get_ticks() / 1000
+        #checks cooldown
         if timeUsed > self.nextDashTime:
             self.vel *= 3.75
             self.nextDashTime = timeUsed + coolDown
@@ -90,6 +100,7 @@ class PhysicsEngine:
     def collision(self, target):
         playerCollision = False
 
+        #distance between player and target
         diff = self.pos - target.pos
         distance = diff.magnitude()
 

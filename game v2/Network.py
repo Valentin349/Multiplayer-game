@@ -24,7 +24,7 @@ class Network:
             return dataRecieved
         except socket.timeout:
             #if a the client waits longer than 2 seconds it assumes host disconnected
-            self.exit()
+            self._exit()
 
     def exit(self):
         self.ip = None
@@ -44,7 +44,6 @@ class Network:
 
         for ending in range(0, 255):
             addr = subnet + str(ending)
-            print(addr)
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             conn.settimeout(0.1)
             result = conn.connect_ex((addr, port))
@@ -53,5 +52,6 @@ class Network:
             if result == 0:
                 socket.setdefaulttimeout(None)
                 return addr
+        # no server was found
         if result != 0:
             return None

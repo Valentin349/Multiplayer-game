@@ -10,10 +10,12 @@ import Package
 
 class TcpServer:
     def __init__(self):
+        #tcp server to listen for connections trying to join main server
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.IP = socket.gethostbyname(socket.gethostname())
         self.PORT = 5544
 
+        #bind ip and port
         try:
             self.sock.bind((self.IP, self.PORT))
         except socket.error as error:
@@ -30,6 +32,7 @@ class Server:
         self.PORT = 5555
         self.sock.settimeout(5)
 
+        #start the tcp server
         self.tcp = TcpServer()
 
         self.gameStarted = False
@@ -44,11 +47,13 @@ class Server:
 
         self.clock = pg.time.Clock()
 
+        #players rigid bodies
         self.P1physics = PhysicsEngine(615, 200)
         self.P2physics = PhysicsEngine(615, 520)
 
         self.playerIdList = []
 
+        #adds obstacles from client
         self.obstacles = []
         for obstacle in obstacles:
             self.obstacles.append(obstacle.rect)
@@ -57,42 +62,52 @@ class Server:
         self.ability = None
         self.abilityCreateTime = 0
 
+        #start the handle method on a different thread
         thread = threading.Thread(target=self.handle)
         thread.daemon = True
         thread.start()
 
     def handle(self):
         while 1:
+            #limits server at 124 frames per second
             self.clock.tick(124)
             try:
                 try:
+                    #try to get data from a client
                     dataRecieved, addr = self.sock.recvfrom(2048)
                     if addr not in self.playerIdList:
+                        #adds address to player list
                         self.playerIdList.append(addr)
+                        #if 2 players start the game and stop broadcasting
                         if len(self.playerIdList) == 2:
                             self.gameStarted = True
                             self.killTcp()
 
                 except:
                     break
-
+                #upack the data
                 dataRecieved = Package.unpack(dataRecieved)
                 if dataRecieved == "ExitRequest":
                     self.gameEnd = True
 
+                #create a pickup on the map
                 self.createPowerUp()
                 if self.gameStarted and not self.gameEnd:
                     if self.playerIdList[0] == addr:
+                        #physcis update
                         self.P1physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"]
                                               , self.obstacles)
                         self.P1physics.collision(self.P2physics)
+                        #collision update
                         if self.ability is not None:
                             if self.P1physics.collision(self.ability):
                                 self.ability = None
                     else:
+                        # physics update
                         self.P2physics.update(dataRecieved["inputs"], dataRecieved["dt"], dataRecieved["skin"]
                                               , self.obstacles)
                         self.P2physics.collision(self.P1physics)
+                        # collision update
                         if self.ability is not None:
                             if self.P2physics.collision(self.ability):
                                 self.ability = None
@@ -108,11 +123,15 @@ class Server:
         cooldown = 10
         createTime = pg.time.get_ticks() / 1000
 
+        #if 10 seconds passed create a new ability on the screen
+        #random pick the ability type
         if createTime > self.abilityCreateTime and self.ability is None:
             self.ability = random.choice(self.powerUps)
             self.abilityCreateTime = createTime + cooldown
 
     def reply(self, addr):
+        #creates dictionary to pack into a json file and send
+        #data pickup
         if self.ability is not None:
             box = {"x": self.ability.pos.x,
                    "y": self.ability.pos.y,
@@ -121,9 +140,11 @@ class Server:
         else:
             box = None
 
+        #data about player 1 ability
         if self.P1physics.ability is not None:
             abilityNameP1 = self.P1physics.ability.name
             if self.P1physics.ability.objectPos is not None:
+                #ability object data
                 abilityObjectP1 = {"x": self.P1physics.ability.objectPos.x,
                                    "y": self.P1physics.ability.objectPos.y,
                                    "Type": self.P1physics.ability.objectType
@@ -134,10 +155,11 @@ class Server:
             abilityObjectP1 = None
             abilityNameP1 = None
 
-
+        #data about player 2 ability
         if self.P2physics.ability is not None:
             abilityNameP2 = self.P2physics.ability.name
             if self.P2physics.ability.objectPos is not None:
+                # ability object data
                 abilityObjectP2 = {"x": self.P2physics.ability.objectPos.x,
                                    "y": self.P2physics.ability.objectPos.y,
                                    "Type": self.P2physics.ability.objectType,
@@ -156,6 +178,7 @@ class Server:
         else:
             winner = None
 
+        #finaly dictionary
         reply = {"id": self.playerIdList.index(addr)+1,
 
                  "1": {"x": self.P1physics.pos.x,
@@ -188,8 +211,10 @@ class Server:
         return reply
 
     def kill(self):
+        #close listen server and main server
         self.sock.close()
         self.tcp.sock.close()
 
     def killTcp(self):
+        #close listening server
         self.tcp.sock.close()
